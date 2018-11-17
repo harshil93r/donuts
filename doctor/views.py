@@ -54,7 +54,8 @@ class Me(APIView):
         d = Doctor(
             price=body['price'],
             speciality=body['speciality'],
-            pcpId=body['pcpId']
+            pcpId=body['pcpId'],
+            license=body['license']
         )
         d.save()
         u._type = 'DOC'

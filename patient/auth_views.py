@@ -9,6 +9,7 @@ from random import randrange
 from djforge_redis_multitokens.tokens_auth import MultiToken
 from hack.utils import notify as socket_notify
 from django.db.models import Q
+import time
 # Create your views here.
 
 
@@ -177,7 +178,7 @@ class DoctorRequest(APIView):
     def post(self, request):
         u = request.user
         body = request._json_body
-        desc = body['problemDisc']
+        desc = body['problemDesc']
         pcpId = body.get('pcpId',None)
         doctor = []
         if pcpId:
@@ -194,7 +195,7 @@ class DoctorRequest(APIView):
         )
         v.save()
         push_data = {
-            'patientDesc': body['problemDisc'],
+            'patientDesc': body['problemDesc'],
             'patientName': u.first_name + ' '+u.last_name,
             'visit_id':v.id
         }
@@ -208,3 +209,27 @@ class DoctorRequest(APIView):
 
 
         return Response({})
+
+class EndChat(APIView):
+    def post(self,request):
+        u = request.user
+        body = request._json_body
+        room = Rooms.objects.get(id = body['room_id'])
+        visit = Visit.objects.get(id=room.visit_id)
+        visit.status = 'ENDED'
+        visit.save()
+        room.status = 'INACTIVE'
+        room.save()
+        push_data = {
+            'action': 2,
+        }
+        message = Messages.objects.create(
+            messageType='INFO',
+            messageBody='visit has ended at {}'.format(time.time()),
+            creator=u,
+            room=room
+        )
+        for id in room.participants:
+            socket_notify(push_data, channel=id)
+        return Response({})
+

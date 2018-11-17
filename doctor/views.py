@@ -6,6 +6,7 @@ from patient.models import *
 from rest_framework.response import Response
 from hack.utils import send_sms
 from random import randrange
+import time
 from hack.utils import notify as socket_notify
 # Create your views here.
 
@@ -28,7 +29,7 @@ class SignUp(APIView):
         except IntegrityError:
             u = User.objects.get(phoneNo=body['phoneNo'])
             if u.status == 2:
-                return Response({'error': 'doctor already signedup'})
+                return Response({'error': 'doctor already signedup'}, 400)
         u.set_password(body['password'])
         _otp = randrange(1000, 9999)
         u.otp = _otp
@@ -62,41 +63,60 @@ class Me(APIView):
         u.doctor = d
         u.save()
         return Response({})
+
+
 class Accept(APIView):
+
     def post(self, request):
         body = request._json_body
         u = request.user
         visit = Visit.objects.get(id=body['visit_id'])
-        if visit.type =='ALL':
+        if visit.status != 'PENDING':
+            return Response({'error': 'already accepted.'}, 400)
+        if visit.type == 'ALL':
             visit.doctor.append(u.id)
+            visit.status = 'STARTED'
             visit.save()
         paticipant = []
         paticipant.append(u.id)
         paticipant.append(visit.patient.id)
-        room = Rooms(
-            participants = paticipant,
-            status = 'ACTIVE'
+        try:
+            room = Rooms.objects.get(participants=paticipant)
+        except Rooms.DoesNotExist:
+            room = Rooms(
+                participants=paticipant,
+                status='ACTIVE'
+            )
+            room.save()
+        room.visit = visit
+        room.save()
+        message = Messages.objects.create(
+            messageType='INFO',
+            messageBody='visit has started at {}'.format(time.time()),
+            creator=u,
+            room=room
         )
-        room = room.save()
         push_data = {
-            'action':1,
-            'roomId': room.id
+            'action': 1,
+            'roomId': room.id,
+            'eventType':'doctor_request'
         }
         socket_notify(push_data, channel=visit.patient.id)
         socket_notify(push_data, channel=u.id)
-        return Response(response)
+        return Response({'roomId': room.id})
+
 
 class Reject(APIView):
+
     def post(self, request):
         body = request._json_body
         u = request.user
         visit = Visit.objects.get(id=body['visit_id'])
         if visit.type == 'SPECIFIC':
             push_data = {
-                'action':2,
+                'action': 2,
             }
-            socket_notify(push_data, channel=visit.patient.id)            
+            socket_notify(push_data, channel=visit.patient.id)
             return Response(response)
         else:
             pass
-

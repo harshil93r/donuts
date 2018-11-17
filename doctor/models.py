@@ -10,3 +10,4 @@ class Doctor(models.Model):
     speciality = models.CharField(max_length=25, null=True)
     license = models.CharField(max_length=20),
     lastseen = models.FloatField()
+    insuaranceNo = models.CharField(max_length=20)

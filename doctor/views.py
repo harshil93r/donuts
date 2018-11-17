@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from hack.utils import send_sms
 from random import randrange
 
-
 # Create your views here.
 class SignUp(APIView):
     permission_classes = ()
@@ -17,6 +16,7 @@ class SignUp(APIView):
         u = User(
             first_name=body['fn'],
             last_name=body['ln'],
+            _type='DOC',
             phoneNo=body['phoneNo'],
             username=body['phoneNo']
         )

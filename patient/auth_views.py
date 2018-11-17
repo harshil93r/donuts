@@ -8,6 +8,7 @@ from hack.utils import send_sms
 from random import randrange
 from djforge_redis_multitokens.tokens_auth import MultiToken
 from hack.utils import notify as socket_notify
+from django.db.models import Q
 # Create your views here.
 
 
@@ -21,15 +22,16 @@ class SignUp(APIView):
             first_name=body['fn'],
             last_name=body['ln'],
             phoneNo=body['phoneNo'],
-            username=body['phoneNo']
+            username=body['phoneNo'],
+            _type='PAT'
         )
 
         try:
             u.save()
         except IntegrityError:
             u = User.objects.get(phoneNo=body['phoneNo'])
-            # if u.status == 2:
-            #     return Response({'error': 'patient already signedup'})
+            if u.status == 3:
+                return Response({'error': 'patient already signedup'})
         u.set_password(body['password'])
         _otp = randrange(1000, 9999)
         u.otp = _otp
@@ -55,40 +57,63 @@ class OTPVerify(APIView):
         return Response({'token': token.key})
 
 
-
 class DoctorList(APIView):
 
     def get(self, request):
         user = request.user
-        doctors = User.objects.filter(patient=None).exclude(doctor__pcpId=user.patient.pcpId)
-        pcp = User.objects.filter(doctor__pcpId=user.patient.pcpId)
+        doctors = User.objects.filter(~Q(doctor_id=None) & Q(_type='DOC')).exclude(
+            doctor__pcpId=user.patient.pcpId)
 
-        r = {}
-        r['pcp'] = {}
-        r['cir'] = {}
-        r['oth'] = {}
-        payload = {}
-        payload['pcpId'] = pcp.doctor.pcpId
-        payload['name'] = pcp.first_name + pcp.last_name
-        payload['rating'] = pcp.doctor.rating
-        payload['price'] = pcp.doctor.price
-        payload['speciality'] = pcp.doctor.price
-        r['pcp'].append(payload)
+        try:
+            pcp = User.objects.get(doctor__pcpId=user.patient.pcpId)
+
+            r = {}
+            r['pcp'] = {}
+            r['cir'] = {}
+            r['oth'] = {}
+            payload = {}
+            r['pcp']['head'] = 'PCP'
+            r['cir']['head'] = 'You will be charged partial amount'
+            r['oth']['head'] = 'You will be charged complete amount'
+            r['pcp']['list'] = []
+            r['cir']['list'] = []
+            r['oth']['list'] = []
+            payload['pcpId'] = pcp.doctor.pcpId
+            payload['name'] = pcp.first_name + pcp.last_name
+            payload['rating'] = pcp.doctor.rating
+            payload['price'] = pcp.doctor.price
+            payload['copay'] = '0%'
+            payload['speciality'] = pcp.doctor.price
+            r['pcp']['list'].append(payload)
+        except:
+            r = {}
+            payload = {}
+            r['pcp'] = {}
+            r['cir'] = {}
+            r['oth'] = {}
+            r['pcp']['head'] = 'PCP'
+            r['cir']['head'] = 'You will be charged partial amount'
+            r['oth']['head'] = 'You will be charged complete amount'
+            r['pcp']['list'] = []
+            r['cir']['list'] = []
+            r['oth']['list'] = []
         for doc in doctors:
-            if doc.zip5==user.zip5:
+            if doc.zip5 == user.zip5:
                 payload['pcpId'] = doc.doctor.pcpId
                 payload['name'] = doc.first_name + doc.last_name
                 payload['rating'] = doc.doctor.rating
                 payload['price'] = doc.doctor.price
+                payload['copay'] = '30%'
                 payload['speciality'] = doc.doctor.speciality
-                r['cir'].append(payload)
+                r['cir']['list'].append(payload)
             else:
                 payload['pcpId'] = doc.doctor.pcpId
                 payload['name'] = doc.first_name + doc.last_name
                 payload['rating'] = doc.doctor.rating
                 payload['price'] = doc.doctor.price
+                payload['copay'] = '100%'
                 payload['speciality'] = doc.doctor.speciality
-                r['oth'].append(payload)
+                r['oth']['list'].append(payload)
 
         return Response(r)
 
@@ -126,16 +151,16 @@ class Me(APIView):
 
     def get(self, request):
         u = request.user
-        res = {'fn': u.first_name + u.last_name,
-         'ln':u.last_name,
-                'status':u.status}
+        res = {'fn': u.first_name,
+               'ln': u.last_name,
+               'status': u.status}
         return Response(res)
 
     def patch(self, request):
         body = request._json_body
         u = request.user
         p = Patient(
-            insuaranceNo=body['insuaranceNo'],
+            insuaranceNo=body['insuranceNo'],
             creditcardNo=body['creditcardNo'],
             expiryDate=body['expiryDate'],
             cvv=body['cvv'],
@@ -146,7 +171,6 @@ class Me(APIView):
         u._type = 'PAT'
         u.patient = p        
         u.save()
-        
         return Response({})
 
 class DoctorRequest(APIView):

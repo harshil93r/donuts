@@ -5,15 +5,16 @@ from django.http.response import (
     HttpResponseNotAllowed
 )
 
+
 class Response(Exception):
 
     def __init__(self, response, code=200):
+        pass
 
     @property
     def response(self):
         return self._response
-    
-    def 
+
 
 class ReponseGrasper:
 

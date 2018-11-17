@@ -44,6 +44,7 @@ class User(AbstractUser):
 class  Rooms(models.Model):
 	participants = ArrayField(models.CharField(max_length=25, blank=True))
 	status = models.CharField(max_length=20)
+    visit = models.ForeignKey(Visit, on_delete=None) 
 
 class Messages(models.Model):
     """
@@ -72,3 +73,4 @@ class Visit(models.Model):
 	type = models.CharField(max_length=20)
 	doctor = ArrayField(models.CharField(max_length=25, blank=True))
 	create_date = models.DateTimeField(auto_now_add=True)
+    endAt = models.DateTimeField()

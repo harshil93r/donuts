@@ -61,15 +61,16 @@ class DoctorList(APIView):
         user = request.user
         doctors = User.objects.filter(~Q(doctor_id=None) & Q(_type='DOC')).exclude(
             doctor__pcpId=user.patient.pcpId)
-        r = {}
+
         try:
             pcp = User.objects.get(doctor__pcpId=user.patient.pcpId)
 
             r = {}
-            r['pcp'] = {}
-            r['cir'] = {}
-            r['oth'] = {}
+            r['pcp'] = []
+            r['cir'] = []
+            r['oth'] = []
             payload = {}
+
             payload['pcpId'] = pcp.doctor.pcpId
             payload['name'] = pcp.first_name + pcp.last_name
             payload['rating'] = pcp.doctor.rating
@@ -77,9 +78,12 @@ class DoctorList(APIView):
             payload['speciality'] = pcp.doctor.price
             r['pcp'].append(payload)
         except:
-            pass
+            r = {}
+            payload = {}
+            r['pcp'] = []
+            r['cir'] = []
+            r['oth'] = []
         for doc in doctors:
-            print(doc._type)
             if doc.zip5 == user.zip5:
                 payload['pcpId'] = doc.doctor.pcpId
                 payload['name'] = doc.first_name + doc.last_name

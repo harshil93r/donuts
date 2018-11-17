@@ -30,5 +30,7 @@ class SignUp(APIView):
         _otp = randrange(1000, 9999)
         u.otp = _otp
         u.save()
-
+        sms_text = 'Your OTP is {otp} please use this to verify'.format(
+            otp=_otp)
+        send_sms(sms_text, body['phoneNo'])
         return Response('hello')

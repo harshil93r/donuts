@@ -6,6 +6,7 @@ from patient.models import *
 from rest_framework.response import Response
 from hack.utils import send_sms
 from random import randrange
+import time
 from hack.utils import notify as socket_notify
 # Create your views here.
 
@@ -89,6 +90,12 @@ class Accept(APIView):
             room.save()
         room.visit = visit
         room.save()
+        message = Messages.objects.create(
+            messageType='INFO',
+            messageBody='visit has started at {}'.format(time.time()),
+            creator=u,
+            room=room
+        )
         push_data = {
             'action': 1,
             'roomId': room.id,

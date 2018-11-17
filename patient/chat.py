@@ -57,10 +57,15 @@ class Message(APIView):
                     }
                 })
         for mem in room.participants:
-            u = User.objects.get(id=mem)
-            heading.append(u.first_name + ' ' + u.last_name)
-        res = {'data': result, 'heading': ' ,'.join(
-            heading), 'subHeading': 'subHeading'}
+            if str(mem) != str(request.user.id):
+                u = User.objects.get(id=mem)
+                heading.append(u.first_name + ' ' + u.last_name)
+        res = {
+            'data': result,
+            'heading': ' ,'.join(heading),
+            'subHeading': 'subHeading',
+            'status': room.status
+        }
         return Response(res)
 
 
@@ -120,7 +125,8 @@ class Inbox(APIView):
                     payload['name'] += u.first_name + ' ' + u.last_name
             last_message = Messages.objects.filter(
                 room=room).order_by('-sentAt').first()
-            payload['lmt'] = last_message.sentAt.strftime('%I:%M %p')#%Y-%m-%d %H:%M
+            payload['lmt'] = last_message.sentAt.strftime(
+                '%I:%M %p')  # %Y-%m-%d %H:%M
             if last_message.messageType != 'text':
                 payload['lm'] = 'Attachment'
             else:

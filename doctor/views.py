@@ -87,6 +87,8 @@ class Accept(APIView):
                 status='ACTIVE'
             )
             room.save()
+        room.visit = visit
+        room.save()
         push_data = {
             'action': 1,
             'roomId': room.id

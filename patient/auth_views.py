@@ -208,3 +208,21 @@ class DoctorRequest(APIView):
 
 
         return Response({})
+
+class EndChat(APIView):
+    def post(self,request):
+        u = request.user
+        body = request._json_body
+        room = Rooms.objects.get(id = body['room_id'])
+        visit = Visit.objects.get(id=room.visit_id)
+        visit.status = 'ENDED'
+        visit.save()
+        room.status = 'INACTIVE'
+        room.save()
+        push_data = {
+            'action': 2,
+        }
+        for id in room.participants:
+            socket_notify(push_data, channel=id)
+        return Response({})
+

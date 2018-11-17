@@ -18,6 +18,8 @@ class Message(APIView):
     def post(self, request, roomId):
         sender = request.user
         room = Rooms.objects.get(id=roomId)
+        if room.status =='INACTIVE':
+            Response("Visit has ended",400)
         data = request._json_body
         message = Messages.objects.create(
             messageType='TXT',

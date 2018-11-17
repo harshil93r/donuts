@@ -11,7 +11,7 @@ from uuid import uuid4
 import mimetypes
 from tempfile import NamedTemporaryFile
 from datetime import datetime
-
+from hack.utils import notify
 
 class Message(APIView):
 
@@ -29,12 +29,15 @@ class Message(APIView):
             room=room,
             visit=room.visit 
         )
-        res = {
+        mems = room.participants
+        data = {}
+        data['eventType'] = 'new_chat_message'
+        data['msg'] = {
             "id": message.id,
             "type": message.messageType,
             "time": message.sentAt.strftime('%I:%M %p'),
             "sender": message.creator.first_name + ' ' + message.creator.last_name,
-            "self": True,
+            "self": False,
             "data": {
                 "msg": message.messageBody,
                 "scr": message.url,
@@ -42,7 +45,10 @@ class Message(APIView):
                 "status": '',
             }
         }
-        return Response(res)
+        for mem in mems:
+            if sender.id!=mem:
+                notify(data, channel=mem)
+        return Response('wow')
 
     def get(self, request):
         roomId = request.GET['roomId']

@@ -9,6 +9,7 @@ from random import randrange
 from djforge_redis_multitokens.tokens_auth import MultiToken
 from hack.utils import notify as socket_notify
 from django.db.models import Q
+import time
 # Create your views here.
 
 
@@ -222,6 +223,12 @@ class EndChat(APIView):
         push_data = {
             'action': 2,
         }
+        message = Messages.objects.create(
+            messageType='INFO',
+            messageBody='visit has ended at {}'.format(time.time()),
+            creator=u,
+            room=room
+        )
         for id in room.participants:
             socket_notify(push_data, channel=id)
         return Response({})

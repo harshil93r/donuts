@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
 
@@ -115,3 +116,13 @@ class MessageRecipient(models.Model):
     isRead = models.BooleanField(default=True)
     readAt = models.DateTimeField(null=True)
     callbackUrl = models.URLField(null=True)
+
+class Visit(models.Model):
+	"""
+
+	"""
+	patient = models.ForeignKey(User, on_delete=None)
+	status = models.CharField(max_length=20)#default is pending, started, ended, rejected
+	type = models.CharField(max_length=20)
+	doctor = ArrayField(models.CharField(max_length=25, blank=True))
+	create_date = models.DateTimeField(auto_now_add=True)

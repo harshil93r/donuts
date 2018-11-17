@@ -1,5 +1,5 @@
 import requests
-
+from django.conf import settings
 
 def send_sms(message, contact, sender='DONUTS'):
     authKey = '103308AgoSro1T56a75435'
@@ -11,3 +11,18 @@ def send_sms(message, contact, sender='DONUTS'):
                                    sender=sender)
 
     print(requests.get(formatted_url).text)
+
+
+def notify(data, channel):
+    '''
+    Publish to given socket channel with data provided.
+    Params:
+        data    : dict to be published
+        channel : channel id at which the data is to be published
+    '''
+    if not isinstance(channel, str):
+        channel = str(channel)
+    base_uri = '{websocket}/pub?id='.format(
+        websocket=settings.WEBSOCKET_ADDR)
+    url = base_uri + channel
+    requests.post(url, json=data)

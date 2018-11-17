@@ -17,7 +17,7 @@ from django.conf.urls import include
 from django.urls import path
 
 urlpatterns = [
-    path('api/patient', include('patient.urls'), name='patient'),
-    path('api/doctor', include('doctor.urls'), name='doctor'),
+    path('api/patient/', include('patient.urls'), name='patient'),
+    path('api/doctor/', include('doctor.urls'), name='doctor'),
 
 ]

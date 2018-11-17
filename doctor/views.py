@@ -48,11 +48,12 @@ class Me(APIView):
         u = request.user
         d = Doctor(
             price=body['price'],
-            speciality=body['speciality']
+            speciality=body['speciality'],
+            pcpId = body['pcpId']
         )
         d.save()
         u._type = 'DOC'
-        u.Doctor = d
+        u.doctor = d
         u.save()
         return Response({})
 

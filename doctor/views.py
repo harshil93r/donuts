@@ -4,7 +4,6 @@ from .models import *
 from rest_framework.response import Response
 
 
-
 # Create your views here.
 class SignUp(APIView):
     permission_classes = ()

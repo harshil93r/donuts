@@ -6,7 +6,7 @@ from django.conf import settings
 
 
 class CachedTokenAuthentication(TokenAuthentication):
-    keyword = 'Authorization'
+    keyword = 'a'
 
     def authenticate_credentials(self, key):
         try:

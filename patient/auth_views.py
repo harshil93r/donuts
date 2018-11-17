@@ -1,7 +1,7 @@
 
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import User
+from .models import User, Patient
 from rest_framework.response import Response
 from django.db.utils import IntegrityError
 from hack.utils import send_sms
@@ -14,6 +14,7 @@ from djforge_redis_multitokens.tokens_auth import MultiToken
 class SignUp(APIView):
     permission_classes = ()
     authentication_classes = ()
+
     def post(self, request):
         body = request._json_body
         u = User(
@@ -50,21 +51,19 @@ class OTPVerify(APIView):
         u.status = 1
         u.save()
         token, _ = MultiToken.create_token(u)
-        response_data = {
-            'loggedInAlready': _,
-            'token': token.key,
-        }
-        return Response(response_data)
+        return Response({'token': token.key})
+
 
 class Login(APIView):
     permission_classes = ()
     authentication_classes = ()
+
     def post(self, request):
         try:
             _username = request._json_body['phoneNo']
             _password = request._json_body['password']
         except KeyError as e:
-            raise Response(str(e) + ' is required in request body.',400)
+            raise Response(str(e) + ' is required in request body.', 400)
         _user = User.objects.get(phoneNo=_username)
         if not _user:
             raise Response('username or password seems incorrect.')
@@ -77,8 +76,30 @@ class Login(APIView):
             )
             return locked_response
         token, _ = MultiToken.create_token(_user)
-        response_data = {
-            'loggedInAlready': _,
-            'token': token.key,
-        }
-        return Response(response_data)
+        return Response({'token': token.key})
+
+
+class Me(APIView):
+
+    def get(self, request):
+        u = request.user
+        res = {'fn': u.first_name}
+        return Response(res)
+
+    def patch(self, request):
+        body = request._json_body
+        u = request.user
+        p = Patient(
+            insuaranceNo=body['insuaranceNo'],
+            creditcardNo=body['creditcardNo'],
+            expiryDate=body['expiryDate'],
+            cvv=body['cvv'],
+            pcpId=body['pcpId'],
+            ssn=body['ssn'],
+        )
+        p.save()
+        u._type = 'PAT'
+        u.patient = p
+        u.save()
+
+        return Response({})

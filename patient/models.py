@@ -59,6 +59,7 @@ class Message(models.Model):
     creator = models.ForeignKey(User, on_delete=None, null=True)
     url = models.URLField(null=True)
     attachmentDisplayName = models.CharField(max_length=100, null=True)
+    localName = models.CharField(max_length=100, null=True)
 
     def __str__(self):
         return "%s : %s" % (self.messageType, self.messageBody)

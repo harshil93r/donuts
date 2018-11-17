@@ -7,9 +7,12 @@ from rest_framework.response import Response
 from hack.utils import send_sms
 from random import randrange
 # Create your views here.
+
+
 class SignUp(APIView):
     permission_classes = ()
     authentication_classes = ()
+
     def post(self, request):
         body = request._json_body
         u = User(
@@ -34,13 +37,14 @@ class SignUp(APIView):
         send_sms(sms_text, body['phoneNo'])
         return Response({'status': 'otp sent'})
 
+
 class Me(APIView):
 
     def get(self, request):
         u = request.user
         res = {'fn': u.first_name,
-                'ln':u.last_name,
-                'status':u.status}
+               'ln': u.last_name,
+               'status': u.status}
         return Response(res)
 
     def patch(self, request):
@@ -49,11 +53,10 @@ class Me(APIView):
         d = Doctor(
             price=body['price'],
             speciality=body['speciality'],
-            pcpId = body['pcpId']
+            pcpId=body['pcpId']
         )
         d.save()
         u._type = 'DOC'
         u.doctor = d
         u.save()
         return Response({})
-

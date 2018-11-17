@@ -24,6 +24,8 @@ SECRET_KEY = '__@mpvuss+zbzlpo@(n@j--#79ak0@gk0q#7il2fcwvtjvi#_4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+CORS_ORIGIN_ALLOW_ALL = True   
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'patient',
+    'corsheaders',
     'doctor'
 ]
 
@@ -50,7 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'hack.json_middleware.JsonMagic'
+    'hack.json_middleware.JsonMagic',
+    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'hack.urls'
@@ -138,7 +142,7 @@ CACHES = {
         'OPTIONS': {
             'DB': 2,
         },
-        'TIMEOUT': 30 * 60,
+        'TIMEOUT': 3000 * 60,
     },
 }
 

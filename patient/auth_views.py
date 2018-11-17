@@ -21,7 +21,8 @@ class SignUp(APIView):
             first_name=body['fn'],
             last_name=body['ln'],
             phoneNo=body['phoneNo'],
-            username=body['phoneNo']
+            username=body['phoneNo'],
+            _type='PAT'
         )
 
         try:
@@ -60,8 +61,8 @@ class DoctorList(APIView):
 
     def get(self, request):
         user = request.user
-        doctors = User.objects.filter(patient=None).exclude(doctor__pcpId=user.patient.pcpId)
-        pcp = User.objects.filter(doctor__pcpId=user.patient.pcpId)
+        doctors = User.objects.filter(_type='DOC').exclude(doctor__pcpId=user.patient.pcpId)
+        pcp = User.objects.get(doctor__pcpId=user.patient.pcpId)
 
         r = {}
         r['pcp'] = {}

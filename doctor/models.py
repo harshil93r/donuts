@@ -4,7 +4,7 @@ from django.db import models
 
 
 class Doctor(models.Model):
-    ssn = models.CharField(max_length=10, null=True)
-    pcpId = models.CharField(max_length=10, null=True)
-    insuranceNo = models.CharField(max_length=10, null=True)
-    creditcardNo = models.CharField(max_length=16, null=True)
+    pcpId = models.CharField(max_length=25, null=True)
+    rating = models.IntegerField(null=True)
+    price = models.IntegerField(null=True)
+    speciality = models.CharField(max_length=25, null=True)

@@ -28,8 +28,20 @@ class Message(APIView):
             creator=sender,
             room=room
         )
-        mems = room.participants
-        return Response('wow')
+        res = {
+            "id": message.id,
+            "type": message.messageType,
+            "time": message.sentAt.strftime('%I:%M %p'),
+            "sender": message.creator.first_name + ' ' + message.creator.last_name,
+            "self": True,
+            "data": {
+                "msg": message.messageBody,
+                "scr": message.url,
+                "formId": '',
+                "status": '',
+            }
+        }
+        return Response(res)
 
     def get(self, request):
         roomId = request.GET['roomId']

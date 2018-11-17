@@ -227,7 +227,7 @@ class EndChat(APIView):
         room.save()
         message = Messages.objects.create(
             messageType = 'info',
-            messageBody='visit has ended at {} with amount $300'.format(
+            messageBody='visit has ended at {} with payout amount $300'.format(
                 time.strftime('%dth %b, %I:%M %p')),
             creator=u,
             room=room,
@@ -254,6 +254,5 @@ class EndChat(APIView):
         }
         for id in room.participants:
             socket_notify(push_data, channel=id)
-            if id != u.id:
-                socket_notify(data, channel=id)
+            socket_notify(data, channel=id)
         return Response({})

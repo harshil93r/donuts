@@ -38,9 +38,11 @@ class User(AbstractUser):
     """
 
     _type = models.CharField(max_length=1, null=False)
-    doctor = models.ForeignKey('doctor.Doctor', on_delete=None)
-    patient = models.ForeignKey(Patient, on_delete=None)
+    doctor = models.ForeignKey('doctor.Doctor', on_delete=None, null=True)
+    patient = models.ForeignKey(Patient, on_delete=None, null=True)
     phoneNo = models.CharField(null=False, unique=True, max_length=10)
+    status = models.IntegerField(default=0)
+    otp = models.IntegerField(default=0)
 
     class Meta(object):
         db_table = 'auth_user'

@@ -15,11 +15,12 @@ from datetime import datetime
 
 class Message(APIView):
 
-    def post(self, request, roomId):
+    def post(self, request):
         sender = request.user
+        roomId = request._json_body['roomId']
         room = Rooms.objects.get(id=roomId)
-        if room.status =='INACTIVE':
-            Response("Visit has ended",400)
+        if room.status == 'INACTIVE':
+            Response("Visit has ended", 400)
         data = request._json_body
         message = Messages.objects.create(
             messageType='text',
@@ -30,34 +31,44 @@ class Message(APIView):
         mems = room.participants
         return Response('wow')
 
-    def get(self, request, roomId):
+    def get(self, request):
+        roomId = request.GET['roomId']
         user = request.user
         room = Rooms.objects.get(id=roomId)
-        mems = room.participants
         messages = Messages.objects.filter(room=room).order_by('sentAt')
-        result=[]
+        result = []
+        heading = []
         for message in messages:
             bol = False
-            if user.id==message.creator.id: bol=True
+            if user.id == message.creator.id:
+                bol = True
             result.append(
                 {
-                "type":message.messageType,
-                "time":message.sentAt.strftime('%Y-%m-%d %H:%M'),
-                "sender":message.creator.first_name + ' ' + message.creator.last_name,
-                "self":bol,
-                "data": {
-                    "msg":message.messageBody,
-                    "scr":message.url,
-                    "formId":'',
-                    "status":'',
-                }
+                    "id": message.id,
+                    "type": message.messageType,
+                    "time": message.sentAt.strftime('%I:%M %p'),
+                    "sender": message.creator.first_name + ' ' + message.creator.last_name,
+                    "self": bol,
+                    "data": {
+                        "msg": message.messageBody,
+                        "scr": message.url,
+                        "formId": '',
+                        "status": '',
+                    }
                 })
-        return Response(result)
+        for mem in room.participants:
+            u = User.objects.get(id=mem)
+            heading.append(u.first_name + ' ' + u.last_name)
+        res = {'data': result, 'heading': ' ,'.join(
+            heading), 'subHeading': 'subHeading'}
+        return Response(res)
 
 
 class Attachment(APIView):
 
-    def post(self, request, roomId):
+    def post(self, request):
+        roomId = request.POST['roomId']
+
         sender = request.user
         room = Rooms.objects.get(id=roomId)
         mems = room.participants
@@ -109,7 +120,7 @@ class Inbox(APIView):
                     payload['name'] += u.first_name + ' ' + u.last_name
             last_message = Messages.objects.filter(
                 room=room).order_by('-sentAt').first()
-            payload['lmt'] = last_message.sentAt.strftime('%Y-%m-%d %H:%M')
+            payload['lmt'] = last_message.sentAt.strftime('%I:%M %p')#%Y-%m-%d %H:%M
             if last_message.messageType != 'text':
                 payload['lm'] = 'Attachment'
             else:

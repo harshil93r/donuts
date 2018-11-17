@@ -48,7 +48,7 @@ class OTPVerify(APIView):
         u = User.objects.get(phoneNo=body['phoneNo'])
         if str(u.otp) != str(body['otp']):
             return Response({'error': 'otp not valid'}, 400)
-        u.status = 1
+        u.status = 2
         u.save()
         token, _ = MultiToken.create_token(u)
         return Response({'token': token.key})
@@ -87,7 +87,9 @@ class Me(APIView):
 
     def get(self, request):
         u = request.user
-        res = {'fn': u.first_name}
+        res = {'fn': u.first_name,
+                'ln':u.last_name,
+                'status':u.status}
         return Response(res)
 
     def patch(self, request):
@@ -104,6 +106,10 @@ class Me(APIView):
         p.save()
         u._type = 'PAT'
         u.patient = p
+
+
+
+        
         u.save()
 
         return Response({})

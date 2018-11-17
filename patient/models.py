@@ -8,12 +8,12 @@ GENDER_TYPES = [('M', 'Male'), ('F', 'Female'),
 
 
 class Patient(models.Model):
-    insuaranceNo = models.CharField(max_length=15)
-    creditcardNo = models.CharField(max_length=16)
-    expiryDate = models.CharField(max_length=6)
-    cvv = models.FloatField()
-    pcpId = models.CharField(max_length=15)
-    ssn = models.TextField()
+    insuaranceNo = models.CharField(max_length=20)
+    creditcardNo = models.CharField(max_length=20)
+    expiryDate = models.CharField(max_length=20)
+    cvv = models.CharField(max_length=20)
+    pcpId = models.CharField(max_length=20)
+    ssn = models.CharField(max_length=20)
 
 
 class User(AbstractUser):
@@ -25,7 +25,7 @@ class User(AbstractUser):
         -   tenant_id
     """
 
-    _type = models.CharField(max_length=1, null=False)
+    _type = models.CharField(max_length=3, null=False)
     doctor = models.ForeignKey('doctor.Doctor', on_delete=None, null=True)
     patient = models.ForeignKey(Patient, on_delete=None, null=True)
     gender = models.CharField(

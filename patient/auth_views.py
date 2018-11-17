@@ -7,7 +7,7 @@ from django.db.utils import IntegrityError
 from hack.utils import send_sms
 from random import randrange
 from djforge_redis_multitokens.tokens_auth import MultiToken
-
+from django.db.models import Q
 # Create your views here.
 
 
@@ -28,8 +28,8 @@ class SignUp(APIView):
             u.save()
         except IntegrityError:
             u = User.objects.get(phoneNo=body['phoneNo'])
-            # if u.status == 2:
-            #     return Response({'error': 'patient already signedup'})
+            if u.status == 3:
+                return Response({'error': 'patient already signedup'})
         u.set_password(body['password'])
         _otp = randrange(1000, 9999)
         u.otp = _otp
@@ -55,27 +55,32 @@ class OTPVerify(APIView):
         return Response({'token': token.key})
 
 
-
 class DoctorList(APIView):
 
     def get(self, request):
         user = request.user
-        doctors = User.objects.filter(patient=None).exclude(doctor__pcpId=user.patient.pcpId)
-        pcp = User.objects.filter(doctor__pcpId=user.patient.pcpId)
-
+        doctors = User.objects.filter(~Q(doctor_id=None) & Q(_type='DOC')).exclude(
+            doctor__pcpId=user.patient.pcpId)
         r = {}
-        r['pcp'] = {}
-        r['cir'] = {}
-        r['oth'] = {}
-        payload = {}
-        payload['pcpId'] = pcp.doctor.pcpId
-        payload['name'] = pcp.first_name + pcp.last_name
-        payload['rating'] = pcp.doctor.rating
-        payload['price'] = pcp.doctor.price
-        payload['speciality'] = pcp.doctor.price
-        r['pcp'].append(payload)
+        try:
+            pcp = User.objects.get(doctor__pcpId=user.patient.pcpId)
+
+            r = {}
+            r['pcp'] = {}
+            r['cir'] = {}
+            r['oth'] = {}
+            payload = {}
+            payload['pcpId'] = pcp.doctor.pcpId
+            payload['name'] = pcp.first_name + pcp.last_name
+            payload['rating'] = pcp.doctor.rating
+            payload['price'] = pcp.doctor.price
+            payload['speciality'] = pcp.doctor.price
+            r['pcp'].append(payload)
+        except:
+            pass
         for doc in doctors:
-            if doc.zip5==user.zip5:
+            print(doc._type)
+            if doc.zip5 == user.zip5:
                 payload['pcpId'] = doc.doctor.pcpId
                 payload['name'] = doc.first_name + doc.last_name
                 payload['rating'] = doc.doctor.rating
@@ -127,15 +132,15 @@ class Me(APIView):
     def get(self, request):
         u = request.user
         res = {'fn': u.first_name,
-                'ln':u.last_name,
-                'status':u.status}
+               'ln': u.last_name,
+               'status': u.status}
         return Response(res)
 
     def patch(self, request):
         body = request._json_body
         u = request.user
         p = Patient(
-            insuaranceNo=body['insuaranceNo'],
+            insuaranceNo=body['insuranceNo'],
             creditcardNo=body['creditcardNo'],
             expiryDate=body['expiryDate'],
             cvv=body['cvv'],
@@ -145,10 +150,7 @@ class Me(APIView):
         p.save()
         u._type = 'PAT'
         u.patient = p
-
-
-
-        
+        u.status = 3
         u.save()
 
         return Response({})

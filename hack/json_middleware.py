@@ -10,7 +10,7 @@ class JsonMagic:
         # setattr(settings, 'DEBUG_PROPAGATE_EXCEPTIONS', True)
 
     def __call__(self, request):
-        print(request.META)
+        print(request.META.get('HTTP_AUTHORIZATION'))
         if request.body:
             s = request._body.decode('utf-8')
             request._json_body = json.loads(s)

@@ -26,7 +26,8 @@ class Message(APIView):
             messageType='text',
             messageBody=data['message'],
             creator=sender,
-            room=room
+            room=room,
+            visit=room.visit 
         )
         mems = room.participants
         data = {}
@@ -113,7 +114,8 @@ class Attachment(APIView):
             creator=sender,
             attachmentDisplayName=file_obj.name,
             localName=filename,
-            room=room
+            room=room,
+            visit=visit
         )
         mems = room.participants
         return Response('wow')

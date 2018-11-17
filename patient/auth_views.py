@@ -219,20 +219,22 @@ class EndChat(APIView):
     def post(self, request):
         u = request.user
         body = request._json_body
-        room = Rooms.objects.get(id=body['room_id'])
+        room = Rooms.objects.get(id=body['roomId'])
         visit = Visit.objects.get(id=room.visit_id)
         visit.status = 'ENDED'
         visit.save()
         room.status = 'INACTIVE'
         room.save()
         push_data = {
-            'action': 2,
+            'action': 3,
+            'actionType':'endChat'
         }
         message = Messages.objects.create(
-            messageType='INFO',
+            messageType='info',
             messageBody='visit has ended at {}'.format(time.time()),
             creator=u,
-            room=room
+            room=room,
+            visit = visit
         )
         for id in room.participants:
             socket_notify(push_data, channel=id)

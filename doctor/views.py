@@ -6,6 +6,7 @@ from patient.models import *
 from rest_framework.response import Response
 from hack.utils import send_sms
 from random import randrange
+from hack.utils import notify as socket_notify
 # Create your views here.
 
 
@@ -61,26 +62,31 @@ class Me(APIView):
         u.save()
         return Response({})
 class Accept(APIView):
-	def post(self, request):
-		body = request._json_body
-		u = request.user
-		visit = Visit.objects.get(id=body['visit_id'])
-		response = {
-			'action':1,
-			'roomId': ""
-		}
-		return Response(response)
+    def post(self, request):
+        body = request._json_body
+        u = request.user
+        visit = Visit.objects.get(id=body['visit_id'])
+        if visit.type =='ALL':
+            visit.doctor.append(User.objects.filter(doctor__pcpId=u.doctor.pcpId))
+        push_data = {
+            'action':1,
+            'roomId': ""
+        }
+        socket_notify(push_data, channel=visit.patient.id)
+        socket_notify(push_data, channel=u.id)
+        return Response(response)
 
 class Reject(APIView):
-	def post(self, request):
-		body = request._json_body
-		u = request.user
-		visit = Visit.objects.get(id=body['visit_id'])
-		if visit.type == 'SPECIFIC':
-			response = {
-				'action':2,
-			}
-			return Response(response)
-		else:
-			pass
+    def post(self, request):
+        body = request._json_body
+        u = request.user
+        visit = Visit.objects.get(id=body['visit_id'])
+        if visit.type == 'SPECIFIC':
+            push_data = {
+                'action':2,
+            }
+            socket_notify(push_data, channel=visit.patient.id)            
+            return Response(response)
+        else:
+            pass
 

@@ -142,7 +142,7 @@ CACHES = {
         'OPTIONS': {
             'DB': 2,
         },
-        'TIMEOUT': 3000 * 60,
+        'TIMEOUT': 3000 * 600,
     },
 }
 

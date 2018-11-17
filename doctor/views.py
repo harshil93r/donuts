@@ -61,41 +61,51 @@ class Me(APIView):
         u.doctor = d
         u.save()
         return Response({})
+
+
 class Accept(APIView):
+
     def post(self, request):
         body = request._json_body
         u = request.user
         visit = Visit.objects.get(id=body['visit_id'])
-        if visit.type =='ALL':
+        if visit.status != 'PENDING':
+            return Response({'error': 'already accepted.'}, 400)
+        if visit.type == 'ALL':
             visit.doctor.append(u.id)
+            visit.status = 'STARTED'
             visit.save()
         paticipant = []
         paticipant.append(u.id)
         paticipant.append(visit.patient.id)
-        room = Rooms(
-            participants = paticipant,
-            status = 'ACTIVE'
-        )
-        room = room.save()
+        try:
+            room = Rooms.objects.get(participants=paticipant)
+        except Rooms.DoesNotExist:
+            room = Rooms(
+                participants=paticipant,
+                status='ACTIVE'
+            )
+            room.save()
         push_data = {
-            'action':1,
+            'action': 1,
             'roomId': room.id
         }
         socket_notify(push_data, channel=visit.patient.id)
         socket_notify(push_data, channel=u.id)
-        return Response(response)
+        return Response({'roomId': room.id})
+
 
 class Reject(APIView):
+
     def post(self, request):
         body = request._json_body
         u = request.user
         visit = Visit.objects.get(id=body['visit_id'])
         if visit.type == 'SPECIFIC':
             push_data = {
-                'action':2,
+                'action': 2,
             }
-            socket_notify(push_data, channel=visit.patient.id)            
+            socket_notify(push_data, channel=visit.patient.id)
             return Response(response)
         else:
             pass
-

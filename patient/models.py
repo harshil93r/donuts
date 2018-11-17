@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 GENDER_TYPES = [('M', 'Male'), ('F', 'Female'),
                 ('O', 'Other'), ('U', 'Unknown')]
 
+
 class Patient(models.Model):
     insuaranceNo = models.CharField(max_length=15)
     creditcardNo = models.CharField(max_length=16)
@@ -30,7 +31,7 @@ class User(AbstractUser):
     gender = models.CharField(
         max_length=50, choices=GENDER_TYPES, default='Unknown', null=True)
     dob = models.DateField(null=True)
-    zip5 = models.CharField(max_length=10)
+    zip5 = models.CharField(max_length=10, null=True)
     phoneNo = models.CharField(null=False, unique=True, max_length=10)
     status = models.IntegerField(default=0)
     otp = models.IntegerField(default=0)

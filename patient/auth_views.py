@@ -1,12 +1,13 @@
 
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import User, Patient
+from .models import *
 from rest_framework.response import Response
 from django.db.utils import IntegrityError
 from hack.utils import send_sms
 from random import randrange
 from djforge_redis_multitokens.tokens_auth import MultiToken
+from hack.utils import notify as socket_notify
 from django.db.models import Q
 # Create your views here.
 
@@ -168,8 +169,41 @@ class Me(APIView):
         )
         p.save()
         u._type = 'PAT'
-        u.patient = p
-        u.status = 3
+        u.patient = p        
         u.save()
-
         return Response({})
+
+class DoctorRequest(APIView):
+    def post(self, request):
+        u = request.user
+        body = request._json_body
+        desc = body['problemDisc']
+        pcpId = body.get('pcpId',None)
+        doctor = []
+        if pcpId:
+            type = 'SPECIFIC'
+            doctor.append(User.objects.filter(doctor__pcpId=pcpId))
+        else:
+            type = 'ALL'
+
+        v = Visit(
+            patient = u,
+            status = 'PENDING',
+            type = type,
+            doctor = doctor
+        )
+        v = v.save()
+        push_data = {
+            'patientDesc': body['problemDisc'],
+            'patientName': u.first_name + u.last_name,
+            'visit_id':v.id
+        }
+        
+        if pcpId:
+            socket_notify(push_data, channel=body['pcpId'])
+        else:
+            doc = User.objects.filter(_type='DOC')
+            for doctor in doc:
+                socket_notify(push_data, channel=doctor.pcpId)
+
+

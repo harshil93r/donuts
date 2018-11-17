@@ -98,7 +98,7 @@ class DoctorList(APIView):
             r['cir']['list'] = []
             r['oth']['list'] = []
         for doc in doctors:
-            if doc.zip5 == user.zip5:
+            if doc.doctor.insuaranceNo == user.patient.insuaranceNo:
                 payload['pcpId'] = doc.doctor.pcpId
                 payload['name'] = doc.first_name + doc.last_name
                 payload['rating'] = doc.doctor.rating

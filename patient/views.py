@@ -43,3 +43,9 @@ class OTPVerify(APIView):
 
     def post(self, request):
         body = request._json_body
+        u = User.objects.get(phoneNo=body['phoneNo'])
+        if str(u.otp) != str(body['otp']):
+            return Response({'error': 'otp not valid'}, 400)
+        u.status = 1
+        u.save()
+        return Response({'status': 'okay'})

@@ -21,7 +21,8 @@ class SignUp(APIView):
             first_name=body['fn'],
             last_name=body['ln'],
             phoneNo=body['phoneNo'],
-            username=body['phoneNo']
+            username=body['phoneNo'],
+            _type='PAT'
         )
 
         try:
@@ -75,6 +76,7 @@ class DoctorList(APIView):
             payload['name'] = pcp.first_name + pcp.last_name
             payload['rating'] = pcp.doctor.rating
             payload['price'] = pcp.doctor.price
+            payload['copay'] = '0%'
             payload['speciality'] = pcp.doctor.price
             r['pcp'].append(payload)
         except:
@@ -89,6 +91,7 @@ class DoctorList(APIView):
                 payload['name'] = doc.first_name + doc.last_name
                 payload['rating'] = doc.doctor.rating
                 payload['price'] = doc.doctor.price
+                payload['copay'] = '30%'
                 payload['speciality'] = doc.doctor.speciality
                 r['cir'].append(payload)
             else:
@@ -96,6 +99,7 @@ class DoctorList(APIView):
                 payload['name'] = doc.first_name + doc.last_name
                 payload['rating'] = doc.doctor.rating
                 payload['price'] = doc.doctor.price
+                payload['copay'] = '100%'
                 payload['speciality'] = doc.doctor.speciality
                 r['oth'].append(payload)
 

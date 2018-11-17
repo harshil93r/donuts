@@ -192,10 +192,10 @@ class DoctorRequest(APIView):
             type = type,
             doctor = doctor
         )
-        v = v.save()
+        v.save()
         push_data = {
             'patientDesc': body['problemDisc'],
-            'patientName': u.first_name + u.last_name,
+            'patientName': u.first_name + ' '+u.last_name,
             'visit_id':v.id
         }
         
@@ -204,7 +204,7 @@ class DoctorRequest(APIView):
         else:
             doc = User.objects.filter(_type='DOC')
             for doctor in doc:
-                socket_notify(push_data, channel=doctor.pcpId)
+                socket_notify(push_data, channel=doctor.id)
 
 
         return Response({})

@@ -177,7 +177,7 @@ class DoctorRequest(APIView):
     def post(self, request):
         u = request.user
         body = request._json_body
-        desc = body['problemDisc']
+        desc = body['problemDesc']
         pcpId = body.get('pcpId',None)
         doctor = []
         if pcpId:
@@ -194,7 +194,7 @@ class DoctorRequest(APIView):
         )
         v.save()
         push_data = {
-            'patientDesc': body['problemDisc'],
+            'patientDesc': body['problemDesc'],
             'patientName': u.first_name + ' '+u.last_name,
             'visit_id':v.id
         }

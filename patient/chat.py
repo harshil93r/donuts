@@ -13,6 +13,7 @@ from tempfile import NamedTemporaryFile
 from datetime import datetime
 from hack.utils import notify
 
+
 class Message(APIView):
 
     def post(self, request):
@@ -27,7 +28,7 @@ class Message(APIView):
             messageBody=data['message'],
             creator=sender,
             room=room,
-            visit=room.visit 
+            visit=room.visit
         )
         mems = room.participants
         data = {}
@@ -46,9 +47,9 @@ class Message(APIView):
             }
         }
         for mem in mems:
-            if sender.id!=mem:
+            if sender.id != mem:
                 notify(data, channel=mem)
-        return Response('wow')
+        return Response(data['msg'])
 
     def get(self, request):
         roomId = request.GET['roomId']

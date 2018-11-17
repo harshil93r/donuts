@@ -51,13 +51,13 @@ class Messages(models.Model):
      relations will be found in MessageRecipient model.
     """
     sentAt = models.DateTimeField(auto_now=True)
-    messageType = models.CharField(max_length=50, null=True)
+    messageType = models.CharField(max_length=200, null=True)
     messageBody = models.TextField()
     room = models.ForeignKey(Rooms, on_delete=None)
     creator = models.ForeignKey(User, on_delete=None, null=True)
     url = models.URLField(null=True)
-    attachmentDisplayName = models.CharField(max_length=100, null=True)
-    localName = models.CharField(max_length=100, null=True)
+    attachmentDisplayName = models.CharField(max_length=200, null=True)
+    localName = models.CharField(max_length=200, null=True)
 
     def __str__(self):
         return "%s : %s" % (self.messageType, self.messageBody)

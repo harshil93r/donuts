@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import User, Patient, Message, Room
+from .models import User, Patient, Messages, Rooms
 from rest_framework.response import Response
 from django.db.utils import IntegrityError
 from hack.utils import send_sms
@@ -9,15 +9,16 @@ from djforge_redis_multitokens.tokens_auth import MultiToken
 from django.db.models import Q
 from uuid import uuid4
 import mimetypes
+from tempfile import NamedTemporaryFile
+from datetime import datetime
+
 
 class Message(APIView):
     def post(self, request, roomId):
         sender = request.user
-        room = Room.objects.get(id=roomId)
-        _id = uuid4().__str__()
+        room = Rooms.objects.get(id=roomId)
         data = request._json_body
-        message = Message.objects.create(
-            _id=_id,
+        message = Messages.objects.create(
             messageType='TXT',
             messageBody=data['message'],
             creator=sender,
@@ -30,24 +31,22 @@ class Message(APIView):
 class Attachment(APIView):
     def post(self, request, roomId):
         sender = request.user
-        room = Room.objects.get(id=roomId)
+        room = Rooms.objects.get(id=roomId)
         mems = room.participants
-        _id = uuid4().__str__()
         file_obj = request.FILES['file']
         content = file_obj.read()
         filepath = file_obj.name
         kind = mimetypes.guess_type(filepath)
-        epoc = int(time.time())
         f = NamedTemporaryFile(delete=False)
         f.write(content)
         filename = f.name
         
-        Message.objects.create(
-            _id=_id,
+        message = Messages.objects.create(
             messageType=kind[0],
             creator=sender,
             attachmentDisplayName=file_obj.name,
-            localName=filename
+            localName=filename,
+            room=room
         )
         mems = room.participants
         return Response('wow')
@@ -55,10 +54,10 @@ class Attachment(APIView):
 class Inbox(APIView):
     def get(self, request):
         user = request.user
-        all_rooms = Room.objects.all()
+        all_rooms = Rooms.objects.all()
         rooms = []
         for room in all_rooms:
-            if user.id in room.participants:
+            if str(user.id) in room.participants:
                 rooms.append(room)
         result = {}
         result['data'] = []
@@ -72,8 +71,9 @@ class Inbox(APIView):
             payload = {}
             payload['roomId'] = room.id
             payload['mems'] = participants
-            last_message = Message.objects.filter(room=room.id).order_by('-sentAt').first()
-            payload['lmt'] = last_message.sentAt
+            last_message = Messages.objects.filter(room=room).order_by('-sentAt').first()
+            print()
+            payload['lmt'] = last_message.sentAt.strftime('%Y-%m-%d %H:%M')
             if last_message.messageType!='TXT':
                 payload['lm'] = 'Attachment'
             else:

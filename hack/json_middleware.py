@@ -11,8 +11,11 @@ class JsonMagic:
 
     def __call__(self, request):
         print(request.META.get('HTTP_AUTHORIZATION'))
-        if request.body:
-            s = request._body.decode('utf-8')
-            request._json_body = json.loads(s)
-            print(request._json_body)
-        return self.get_response(request)
+        try:
+            if request.body:
+                s = request._body.decode('utf-8')
+                request._json_body = json.loads(s)
+                print(request._json_body)
+            return self.get_response(request)
+        except:
+            return self.get_response(request)

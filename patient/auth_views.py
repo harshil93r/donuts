@@ -225,18 +225,35 @@ class EndChat(APIView):
         visit.save()
         room.status = 'INACTIVE'
         room.save()
-        push_data = {
-            'action': 3,
-            'actionType': 'endChat'
-        }
         message = Messages.objects.create(
-            messageType='info',
+            messageType = 'info',
             messageBody='visit has ended at {}'.format(
                 time.strftime('%dth %b, %I:%M %p')),
             creator=u,
             room=room,
             visit=visit
         )
+        push_data = {
+            'action': 3,
+            'actionType':'endChat'
+        }
+        data = {}
+        data['eventType'] = 'new_chat_message'
+        data['msg'] = {
+            "id": message.id,
+            "type": message.messageType,
+            "time": message.sentAt.strftime('%I:%M %p'),
+            "sender": message.creator.first_name + ' ' + message.creator.last_name,
+            "self": True,
+            "data": {
+                "msg": message.messageBody,
+                "scr": message.url,
+                "formId": '',
+                "status": '',
+            }
+        }
         for id in room.participants:
             socket_notify(push_data, channel=id)
+            if id != u.id:
+                socket_notify(data, channel=id)
         return Response({})

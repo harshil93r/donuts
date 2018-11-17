@@ -11,7 +11,7 @@ class Patient(models.Model):
     insuaranceNo = models.CharField(max_length=15)
     creditcardNo = models.CharField(max_length=16)
     expiryDate = models.CharField(max_length=6)
-    cvv = models.PositiveIntegerField()
+    cvv = models.FloatField()
     pcpId = models.CharField(max_length=15)
     ssn = models.TextField()
 

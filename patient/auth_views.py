@@ -27,8 +27,8 @@ class SignUp(APIView):
             u.save()
         except IntegrityError:
             u = User.objects.get(phoneNo=body['phoneNo'])
-            if u.status == 2:
-                return Response({'error': 'patient already signedup'})
+            # if u.status == 2:
+            #     return Response({'error': 'patient already signedup'})
         u.set_password(body['password'])
         _otp = randrange(1000, 9999)
         u.otp = _otp
@@ -76,7 +76,11 @@ class Login(APIView):
             )
             return locked_response
         token, _ = MultiToken.create_token(_user)
-        return Response({'token': token.key})
+        return Response(
+            {'token': token.key,
+             'fn': _user.first_name,
+             'ln': _user.last_name}
+        )
 
 
 class Me(APIView):

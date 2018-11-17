@@ -14,6 +14,7 @@ from datetime import datetime
 
 
 class Message(APIView):
+
     def post(self, request, roomId):
         sender = request.user
         room = Rooms.objects.get(id=roomId)
@@ -26,9 +27,10 @@ class Message(APIView):
         )
         mems = room.participants
         return Response('wow')
-            
+
 
 class Attachment(APIView):
+
     def post(self, request, roomId):
         sender = request.user
         room = Rooms.objects.get(id=roomId)
@@ -40,7 +42,7 @@ class Attachment(APIView):
         f = NamedTemporaryFile(delete=False)
         f.write(content)
         filename = f.name
-        
+
         message = Messages.objects.create(
             messageType=kind[0],
             creator=sender,
@@ -50,8 +52,10 @@ class Attachment(APIView):
         )
         mems = room.participants
         return Response('wow')
-        
+
+
 class Inbox(APIView):
+
     def get(self, request):
         user = request.user
         all_rooms = Rooms.objects.all()
@@ -61,20 +65,23 @@ class Inbox(APIView):
                 rooms.append(room)
         result = {}
         result['data'] = []
-        participants = []
+
         for room in rooms:
-            for mem in room.participants:
-                if mem!=user.id:
-                    name = User.objects.get(pk=mem).first_name
-                    participants.append(name)
-        for room in rooms:
+
             payload = {}
             payload['roomId'] = room.id
-            payload['mems'] = participants
-            last_message = Messages.objects.filter(room=room).order_by('-sentAt').first()
+            payload['mems'] = []
+            payload['name'] = ''
+            for mem in room.participants:
+                if str(mem) != str(user.id):
+                    u = User.objects.get(pk=mem)
+                    payload['mems'].append(u.first_name + ' ' + u.last_name)
+                    payload['name'] += u.first_name + ' ' + u.last_name
+            last_message = Messages.objects.filter(
+                room=room).order_by('-sentAt').first()
             print()
             payload['lmt'] = last_message.sentAt.strftime('%Y-%m-%d %H:%M')
-            if last_message.messageType!='TXT':
+            if last_message.messageType != 'TXT':
                 payload['lm'] = 'Attachment'
             else:
                 payload['lm'] = last_message.messageBody

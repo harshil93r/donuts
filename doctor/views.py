@@ -28,7 +28,7 @@ class SignUp(APIView):
         except IntegrityError:
             u = User.objects.get(phoneNo=body['phoneNo'])
             if u.status == 2:
-                return Response({'error': 'doctor already signedup'})
+                return Response({'error': 'doctor already signedup'}, 400)
         u.set_password(body['password'])
         _otp = randrange(1000, 9999)
         u.otp = _otp

@@ -91,7 +91,8 @@ class Accept(APIView):
         room.save()
         push_data = {
             'action': 1,
-            'roomId': room.id
+            'roomId': room.id,
+            'eventType':'doctor_request'
         }
         socket_notify(push_data, channel=visit.patient.id)
         socket_notify(push_data, channel=u.id)

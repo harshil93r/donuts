@@ -6,19 +6,21 @@ from rest_framework.response import Response
 from django.db.utils import IntegrityError
 from hack.utils import send_sms
 from random import randrange
+from djforge_redis_multitokens.tokens_auth import MultiToken
+
 # Create your views here.
 
 
 class SignUp(APIView):
     permission_classes = ()
     authentication_classes = ()
-
     def post(self, request):
         body = request._json_body
         u = User(
             first_name=body['fn'],
             last_name=body['ln'],
-            phoneNo=body['phoneNo']
+            phoneNo=body['phoneNo'],
+            username=body['phoneNo']
         )
 
         try:
@@ -31,8 +33,29 @@ class SignUp(APIView):
         _otp = randrange(1000, 9999)
         u.otp = _otp
         u.save()
+        sms_text = 'Your OTP is {otp} please use this to verify'.format(
+            otp=_otp)
+        send_sms(sms_text, body['phoneNo'])
+        return Response({'status': 'otp sent'})
 
-        return Response('hello')
+
+class OTPVerify(APIView):
+    permission_classes = ()
+    authentication_classes = ()
+
+    def post(self, request):
+        body = request._json_body
+        u = User.objects.get(phoneNo=body['phoneNo'])
+        if str(u.otp) != str(body['otp']):
+            return Response({'error': 'otp not valid'}, 400)
+        u.status = 1
+        u.save()
+        token, _ = MultiToken.create_token(u)
+        response_data = {
+            'loggedInAlready': _,
+            'token': token.key,
+        }
+        return Response(response_data)
 
 
 class DoctorList(APIView):
@@ -70,3 +93,31 @@ class DoctorList(APIView):
                 r['oth'].append(payload)
 
         return Response(r)
+
+
+class Login(APIView):
+    permission_classes = ()
+    authentication_classes = ()
+    def post(self, request):
+        try:
+            _username = request._json_body['phoneNo']
+            _password = request._json_body['password']
+        except KeyError as e:
+            raise Response(str(e) + ' is required in request body.',400)
+        _user = User.objects.get(phoneNo=_username)
+        if not _user:
+            raise Response('username or password seems incorrect.')
+        if not _user.check_password(_password):
+            locked_response = Response(
+                {
+                    "error": {"message": "Account Locked.", "code": -1},
+                    "statusCode": 400,
+                }, 400,
+            )
+            return locked_response
+        token, _ = MultiToken.create_token(_user)
+        response_data = {
+            'loggedInAlready': _,
+            'token': token.key,
+        }
+        return Response(response_data)

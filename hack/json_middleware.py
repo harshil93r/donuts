@@ -11,6 +11,6 @@ class JsonMagic:
 
     def __call__(self, request):
         if request.body:
-            request._json_body = json.loads(request.body)
-
+            s = request._body.decode('utf-8')
+            request._json_body = json.loads(s)
         return self.get_response(request)

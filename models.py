@@ -1,43 +1,8 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
-
-# Create your models here.
-
-GENDER_TYPES = [('M', 'Male'), ('F', 'Female'),
-                ('O', 'Other'), ('U', 'Unknown')]
-
-class Patient(models.Model):
-    insuaranceNo = models.CharField(max_length=15)
-    creditcardNo = models.CharField(max_length=16)
-    expiryDate = models.CharField(max_length=6)
-    cvv = models.PositiveIntegerField()
-    pcpId = models.CharField(max_length=15)
-    ssn = models.TextField()
-
-
-class User(AbstractUser):
-    """
-    Required Fields:
-        -   username
-        -   empi
-        -   date_of_birth
-        -   tenant_id
-    """
-
-    _type = models.CharField(max_length=1, null=False)
-    doctor = models.ForeignKey('doctor.Doctor', on_delete=None)
-    patient = models.ForeignKey(Patient, on_delete=None)
-    gender = models.CharField(
-        max_length=50, choices=GENDER_TYPES, default='Unknown', null=True)
-    dob = models.DateField(null=True)
-    primaryCell = models.CharField(max_length=25, null=True)
-    zip5 = models.CharField(max_length=10)
-
-    class Meta(object):
-        db_table = 'auth_user'
-
-
 #ALL OTHER MODELS 
+
+
+from django.db import models
+from patient.models import User
 
 GROUP_TYPES = [
     ('One-to-One', 'One-to-One'),
@@ -74,6 +39,20 @@ MSG_TYPES = [
 ]
 
 
+class MessageRecipient(models.Model):
+    """
+
+    """
+    id = models.UUIDField(primary_key=True)
+    message = models.ForeignKey(Message, on_delete=None)
+    recipient = models.ForeignKey(User, on_delete=None)
+    sentAt = models.DateTimeField(auto_now_add=True)
+    messageUserGroup = models.ForeignKey(MessageUserGroup, on_delete=None)
+    isRead = models.BooleanField(default=False)
+    readAt = models.DateTimeField(null=True)
+    callbackUrl = models.URLField(null=True)
+
+
 class Message(models.Model):
     """
     Will store all the messages sent for each campaign,
@@ -82,7 +61,7 @@ class Message(models.Model):
     _id = models.UUIDField(primary_key=True)
     sentAt = models.DateTimeField(auto_now=True)
     messageType = models.CharField(
-        max_length=50, choices=MSG_TYPES, default='Unknown', null=True,
+        max_length=50, choices=MSG_TYPES, default='Unknown', null=False,
     )
     messageBody = models.TextField()
     parent = models.ForeignKey('self', models.SET_NULL, null=True)
@@ -96,19 +75,4 @@ class Message(models.Model):
 
     def __str__(self):
         return "%s : %s" % (self.messageType, self.messageBody)
-
-
-class MessageRecipient(models.Model):
-    """
-
-    """
-    id = models.UUIDField(primary_key=True)
-    message = models.ForeignKey(Message, on_delete=None)
-    recipient = models.ForeignKey(User, on_delete=None)
-    sentAt = models.DateTimeField(auto_now_add=True)
-    messageUserGroup = models.ForeignKey(MessageUserGroup, on_delete=None)
-    isRead = models.BooleanField(default=True)
-    readAt = models.DateTimeField(null=True)
-    callbackUrl = models.URLField(null=True)
-
 

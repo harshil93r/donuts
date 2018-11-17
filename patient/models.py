@@ -41,10 +41,24 @@ class User(AbstractUser):
         db_table = 'auth_user'
 
 
-class  Rooms(models.Model):
-	participants = ArrayField(models.CharField(max_length=25, blank=True))
-	status = models.CharField(max_length=20)
-    visit = models.ForeignKey(Visit, on_delete=None) 
+class Visit(models.Model):
+    """
+
+    """
+    patient = models.ForeignKey(User, on_delete=None)
+    # default is pending, started, ended, rejected
+    status = models.CharField(max_length=20)
+    type = models.CharField(max_length=20)
+    doctor = ArrayField(models.CharField(max_length=25, blank=True))
+    create_date = models.DateTimeField(auto_now_add=True)
+    endAt = models.DateTimeField(null=True)
+
+
+class Rooms(models.Model):
+    participants = ArrayField(models.CharField(max_length=25, blank=True))
+    status = models.CharField(max_length=20)
+    visit = models.ForeignKey(Visit, on_delete=None)
+
 
 class Messages(models.Model):
     """
@@ -62,15 +76,3 @@ class Messages(models.Model):
 
     def __str__(self):
         return "%s : %s" % (self.messageType, self.messageBody)
-
-
-class Visit(models.Model):
-	"""
-
-	"""
-	patient = models.ForeignKey(User, on_delete=None)
-	status = models.CharField(max_length=20)#default is pending, started, ended, rejected
-	type = models.CharField(max_length=20)
-	doctor = ArrayField(models.CharField(max_length=25, blank=True))
-	create_date = models.DateTimeField(auto_now_add=True)
-    endAt = models.DateTimeField()

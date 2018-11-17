@@ -67,10 +67,19 @@ class Accept(APIView):
         u = request.user
         visit = Visit.objects.get(id=body['visit_id'])
         if visit.type =='ALL':
-            visit.doctor.append(User.objects.filter(doctor__pcpId=u.doctor.pcpId))
+            visit.doctor.append(u.id)
+            visit.save()
+        paticipant = []
+        paticipant.append(u.id)
+        paticipant.append(visit.patient.id)
+        room = Rooms(
+            participants = paticipant,
+            status = 'ACTIVE'
+        )
+        room = room.save()
         push_data = {
             'action':1,
-            'roomId': ""
+            'roomId': room.id
         }
         socket_notify(push_data, channel=visit.patient.id)
         socket_notify(push_data, channel=u.id)

@@ -41,21 +41,19 @@ class User(AbstractUser):
         db_table = 'auth_user'
 
 
-class  Room(models.Model):
-	id = models.UUIDField(primary_key=True)
+class  Rooms(models.Model):
 	participants = ArrayField(models.CharField(max_length=25, blank=True))
 	status = models.CharField(max_length=20)
 
-class Message(models.Model):
+class Messages(models.Model):
     """
     Will store all the messages sent for each campaign,
      relations will be found in MessageRecipient model.
     """
-    _id = models.UUIDField(primary_key=True)
     sentAt = models.DateTimeField(auto_now=True)
     messageType = models.CharField(max_length=50, null=True)
     messageBody = models.TextField()
-    room = models.ForeignKey(Room, on_delete=None)
+    room = models.ForeignKey(Rooms, on_delete=None)
     creator = models.ForeignKey(User, on_delete=None, null=True)
     url = models.URLField(null=True)
     attachmentDisplayName = models.CharField(max_length=100, null=True)

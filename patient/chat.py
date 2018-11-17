@@ -47,7 +47,7 @@ class Message(APIView):
             }
         }
         for mem in mems:
-            if sender.id != mem:
+            if str(sender.id) != mem:
                 notify(data, channel=mem)
         data['msg']['self']=True
         return Response(data['msg'])

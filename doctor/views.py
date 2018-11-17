@@ -91,10 +91,11 @@ class Accept(APIView):
         room.visit = visit
         room.save()
         message = Messages.objects.create(
-            messageType='INFO',
+            messageType='info',
             messageBody='visit has started at {}'.format(time.time()),
             creator=u,
-            room=room
+            room=room,
+            visit = visit
         )
         push_data = {
             'action': 1,
@@ -120,3 +121,60 @@ class Reject(APIView):
             return Response(response)
         else:
             pass
+
+class AddDoctor(APIView):
+    def post(self, request):
+        body = request._json_body
+        u = request.user 
+        room = Rooms.objects.get(id = body['roomId'])
+        message = Messages.objects.create(
+            messageType='info',
+            messageBody='This chat has been shifted to different room',
+            creator=u,
+            room=room,
+            visit = room.visit
+        )
+        visit = Visit.objects.get(id=room.visit_id)
+        visit.participants.append(body['pcpId'])
+        v = Visit(
+            patient = visit.patient,
+            status = 'STARTED',
+            type = 'ALL',
+            doctor = visit.participants
+        )
+        v.save()
+        try:
+            roomnew = Rooms.objects.get(participants=visit.participants)
+        except Rooms.DoesNotExist:
+            roomnew = Rooms(
+                participants=visit.participants,
+                status='ACTIVE'
+            )
+            roomnew.save()
+        roomnew.visit = v
+        roomnew.save()
+        push_data = {
+            'action': 1,
+            'roomId': roomnew.id,
+            'eventType':'doctor_request'
+        }
+        messes = Messages.objects.filter(visit_id= visit.id)
+        for mess in messes:
+            message = Messages.objects.create(
+            messageType='text',
+            messageBody= mess.messageBody,
+            creator=mess.creator,
+            room=roomnew,
+            visit= v
+        ) 
+        message = Messages.objects.create(
+            messageType='info',
+            messageBody='Doctor is added to chat',
+            creator=u,
+            room=roomnew,
+            visit= v
+        )
+
+        for par in visit.participants:
+            socket_notify(push_data, channel=par.id)
+        return Response({'roomId': roomnew.id})

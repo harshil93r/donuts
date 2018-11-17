@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 GENDER_TYPES = [('M', 'Male'), ('F', 'Female'),
                 ('O', 'Other'), ('U', 'Unknown')]
 
+
 class Patient(models.Model):
     insuaranceNo = models.CharField(max_length=15)
     creditcardNo = models.CharField(max_length=16)
@@ -25,8 +26,8 @@ class User(AbstractUser):
     """
 
     _type = models.CharField(max_length=1, null=False)
-    doctor = models.ForeignKey('doctor.Doctor', on_delete=None)
-    patient = models.ForeignKey(Patient, on_delete=None)
+    doctor = models.ForeignKey('doctor.Doctor', on_delete=None, null=True)
+    patient = models.ForeignKey(Patient, on_delete=None, null=True)
     gender = models.CharField(
         max_length=50, choices=GENDER_TYPES, default='Unknown', null=True)
     dob = models.DateField(null=True)
@@ -39,12 +40,13 @@ class User(AbstractUser):
         db_table = 'auth_user'
 
 
-#ALL OTHER MODELS 
+# ALL OTHER MODELS
 
 GROUP_TYPES = [
     ('One-to-One', 'One-to-One'),
     ('Many-to-Many', 'Many-to-Many')
 ]
+
 
 class MessageGroup(models.Model):
     name = models.CharField(max_length=100)
@@ -55,6 +57,7 @@ class MessageGroup(models.Model):
     def __str__(self,):
         return str(self.id)
 
+
 class MessageUserGroup(models.Model):
     user = models.ForeignKey(User, on_delete=None)
     group = models.ForeignKey(MessageGroup, on_delete=None)
@@ -62,7 +65,7 @@ class MessageUserGroup(models.Model):
     last_message_time = models.DateTimeField(null=True)
 
     def __str__(self):
-        return '{user} in group : {group}'.format(user=str(self.user),group=str(self.group))
+        return '{user} in group : {group}'.format(user=str(self.user), group=str(self.group))
 
     class Meta:
         unique_together = ('user', 'group')
@@ -112,5 +115,3 @@ class MessageRecipient(models.Model):
     isRead = models.BooleanField(default=True)
     readAt = models.DateTimeField(null=True)
     callbackUrl = models.URLField(null=True)
-
-

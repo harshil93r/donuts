@@ -18,7 +18,8 @@ class SignUp(APIView):
         u = User(
             first_name=body['fn'],
             last_name=body['ln'],
-            phoneNo=body['phoneNo']
+            phoneNo=body['phoneNo'],
+            username=body['phoneNo']
         )
         try:
             u.save()
@@ -33,4 +34,12 @@ class SignUp(APIView):
         sms_text = 'Your OTP is {otp} please use this to verify'.format(
             otp=_otp)
         send_sms(sms_text, body['phoneNo'])
-        return Response('hello')
+        return Response({'status': 'otp sent'})
+
+
+class OTPVerify(APIView):
+    permission_classes = ()
+    authentication_classes = ()
+
+    def post(self, request):
+        body = request._json_body

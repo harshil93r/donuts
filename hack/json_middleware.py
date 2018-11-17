@@ -10,6 +10,7 @@ class JsonMagic:
         # setattr(settings, 'DEBUG_PROPAGATE_EXCEPTIONS', True)
 
     def __call__(self, request):
+        print(request.body, request.content_params)
         if request.body:
             request._json_body = json.loads(request.body)
 

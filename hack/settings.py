@@ -25,7 +25,7 @@ SECRET_KEY = '__@mpvuss+zbzlpo@(n@j--#79ak0@gk0q#7il2fcwvtjvi#_4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'patient.User'
 

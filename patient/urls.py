@@ -1,6 +1,5 @@
 from django.urls import path
-from .views import SignUp, OTPVerify, Login, DoctorList
-from .auth_views import SignUp, OTPVerify, Login, Me, DoctorList
+from .auth_views import SignUp, OTPVerify, Login, Me, DoctorList, DoctorRequest
 
 urlpatterns = [
     path('signup', SignUp.as_view()),
@@ -8,4 +7,5 @@ urlpatterns = [
     path('login', Login.as_view()),
     path('doctor_list', DoctorList.as_view()),
     path('me', Me.as_view()),
+    path('doctor_request', DoctorRequest.as_view())
 ]

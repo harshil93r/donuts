@@ -60,3 +60,27 @@ class Me(APIView):
         u.doctor = d
         u.save()
         return Response({})
+class Accept(APIView):
+	def post(self, request):
+		body = request._json_body
+		u = request.user
+		visit = Visit.objects.get(id=body['visit_id'])
+		response = {
+			'action':1,
+			'roomId': ""
+		}
+		return Response(response)
+
+class Reject(APIView):
+	def post(self, request):
+		body = request._json_body
+		u = request.user
+		visit = Visit.objects.get(id=body['visit_id'])
+		if visit.type == 'SPECIFIC':
+			response = {
+				'action':2,
+			}
+			return Response(response)
+		else:
+			pass
+

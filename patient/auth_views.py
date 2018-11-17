@@ -79,7 +79,7 @@ class DoctorList(APIView):
             r['cir']['list'] = []
             r['oth']['list'] = []
             payload['pcpId'] = pcp.doctor.pcpId
-            payload['name'] = pcp.first_name + pcp.last_name
+            payload['name'] = pcp.first_name + ' '+ pcp.last_name
             payload['rating'] = pcp.doctor.rating
             payload['price'] = pcp.doctor.price
             payload['copay'] = '0%'
@@ -98,9 +98,10 @@ class DoctorList(APIView):
             r['cir']['list'] = []
             r['oth']['list'] = []
         for doc in doctors:
+            payload = {}
             if doc.doctor.insuaranceNo == user.patient.insuaranceNo:
                 payload['pcpId'] = doc.doctor.pcpId
-                payload['name'] = doc.first_name + doc.last_name
+                payload['name'] = doc.first_name + ' ' + doc.last_name
                 payload['rating'] = doc.doctor.rating
                 payload['price'] = doc.doctor.price
                 payload['copay'] = '30%'
@@ -108,7 +109,7 @@ class DoctorList(APIView):
                 r['cir']['list'].append(payload)
             else:
                 payload['pcpId'] = doc.doctor.pcpId
-                payload['name'] = doc.first_name + doc.last_name
+                payload['name'] = doc.first_name + " " + doc.last_name
                 payload['rating'] = doc.doctor.rating
                 payload['price'] = doc.doctor.price
                 payload['copay'] = '100%'
@@ -169,51 +170,55 @@ class Me(APIView):
         )
         p.save()
         u._type = 'PAT'
-        u.patient = p        
+        u.patient = p
         u.save()
         return Response({})
 
+
 class DoctorRequest(APIView):
+
     def post(self, request):
         u = request.user
         body = request._json_body
         desc = body['problemDesc']
-        pcpId = body.get('pcpId',None)
+        pcpId = body.get('pcpId', None)
         doctor = []
         if pcpId:
             type = 'SPECIFIC'
-            doctor.append(User.objects.filter(doctor__pcpId=pcpId))
+            for i in User.objects.filter(doctor__pcpId=pcpId):
+                doctor.append(i.id)
         else:
             type = 'ALL'
 
         v = Visit(
-            patient = u,
-            status = 'PENDING',
-            type = type,
-            doctor = doctor
+            patient=u,
+            status='PENDING',
+            type=type,
+            doctor=doctor
         )
         v.save()
         push_data = {
             'patientDesc': body['problemDesc'],
-            'patientName': u.first_name + ' '+u.last_name,
-            'visit_id':v.id
+            'patientName': u.first_name + ' ' + u.last_name,
+            'visit_id': v.id
         }
-        
+
         if pcpId:
             socket_notify(push_data, channel=body['pcpId'])
         else:
             doc = User.objects.filter(_type='DOC')
             for doctor in doc:
                 socket_notify(push_data, channel=doctor.id)
-
-
+        print(v.id)
         return Response({})
 
+
 class EndChat(APIView):
-    def post(self,request):
+
+    def post(self, request):
         u = request.user
         body = request._json_body
-        room = Rooms.objects.get(id = body['room_id'])
+        room = Rooms.objects.get(id=body['room_id'])
         visit = Visit.objects.get(id=room.visit_id)
         visit.status = 'ENDED'
         visit.save()
@@ -225,4 +230,3 @@ class EndChat(APIView):
         for id in room.participants:
             socket_notify(push_data, channel=id)
         return Response({})
-

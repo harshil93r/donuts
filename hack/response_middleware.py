@@ -46,5 +46,5 @@ class ReponseGrasper:
             else:
                 return JsonResponse(response)
 
-        except HttpError as e:
+        except Exception as e:
             return e.response

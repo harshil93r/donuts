@@ -30,8 +30,10 @@ class User(AbstractUser):
     gender = models.CharField(
         max_length=50, choices=GENDER_TYPES, default='Unknown', null=True)
     dob = models.DateField(null=True)
-    primaryCell = models.CharField(max_length=25, null=True)
     zip5 = models.CharField(max_length=10)
+    phoneNo = models.CharField(null=False, unique=True, max_length=10)
+    status = models.IntegerField(default=0)
+    otp = models.IntegerField(default=0)
 
     class Meta(object):
         db_table = 'auth_user'

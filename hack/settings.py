@@ -50,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'hack.json_middleware.JsonMagic'
 ]
 
 ROOT_URLCONF = 'hack.urls'
@@ -113,7 +114,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         # 'djforge_redis_multitokens.tokens_auth.CachedTokenAuthentication',
-        'inconnect_engagement.middlewares.authentication.CachedTokenAuthentication',
+        'hack.auth_middleware.CachedTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),

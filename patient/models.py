@@ -40,6 +40,7 @@ class User(AbstractUser):
     _type = models.CharField(max_length=1, null=False)
     doctor = models.ForeignKey('doctor.Doctor', on_delete=None)
     patient = models.ForeignKey(Patient, on_delete=None)
+    phoneNo = models.CharField(null=False, unique=True, max_length=10)
 
     class Meta(object):
         db_table = 'auth_user'

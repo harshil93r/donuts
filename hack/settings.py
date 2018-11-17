@@ -113,7 +113,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         # 'djforge_redis_multitokens.tokens_auth.CachedTokenAuthentication',
-        'inconnect_engagement.middlewares.authentication.CachedTokenAuthentication',
+        'hack.auth_middleware.CachedTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),

@@ -80,7 +80,7 @@ class DoctorList(APIView):
             r['cir']['list'] = []
             r['oth']['list'] = []
             payload['pcpId'] = pcp.doctor.pcpId
-            payload['name'] = pcp.first_name + ' '+ pcp.last_name
+            payload['name'] = pcp.first_name + ' ' + pcp.last_name
             payload['rating'] = pcp.doctor.rating
             payload['price'] = pcp.doctor.price
             payload['copay'] = '0%'
@@ -227,14 +227,15 @@ class EndChat(APIView):
         room.save()
         push_data = {
             'action': 3,
-            'actionType':'endChat'
+            'actionType': 'endChat'
         }
         message = Messages.objects.create(
             messageType='info',
-            messageBody='visit has ended at {}'.format(time.time()),
+            messageBody='visit has ended at {}'.format(
+                time.strftime('%dth %b, %I:%M %p')),
             creator=u,
             room=room,
-            visit = visit
+            visit=visit
         )
         for id in room.participants:
             socket_notify(push_data, channel=id)

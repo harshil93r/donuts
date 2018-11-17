@@ -82,25 +82,27 @@ class Accept(APIView):
         paticipant.append(visit.patient.id)
         try:
             room = Rooms.objects.get(participants=paticipant)
+            room.status = 'ACTIVE'
         except Rooms.DoesNotExist:
             room = Rooms(
                 participants=paticipant,
-                status='ACTIVE'
+                status='ACTIVE',
+                visit=visit
             )
             room.save()
         room.visit = visit
         room.save()
         message = Messages.objects.create(
             messageType='info',
-            messageBody='visit has started at {}'.format(time.time()),
+            messageBody='visit has started at {}'.format(time.strftime('%dth %b, %I:%M %p')),
             creator=u,
             room=room,
-            visit = visit
+            visit=visit
         )
         push_data = {
             'action': 1,
             'roomId': room.id,
-            'eventType':'doctor_request'
+            'eventType': 'doctor_request'
         }
         socket_notify(push_data, channel=visit.patient.id)
         socket_notify(push_data, channel=u.id)
@@ -122,25 +124,27 @@ class Reject(APIView):
         else:
             pass
 
+
 class AddDoctor(APIView):
+
     def post(self, request):
         body = request._json_body
-        u = request.user 
-        room = Rooms.objects.get(id = body['roomId'])
+        u = request.user
+        room = Rooms.objects.get(id=body['roomId'])
         message = Messages.objects.create(
             messageType='info',
             messageBody='This chat has been shifted to different room',
             creator=u,
             room=room,
-            visit = room.visit
+            visit=room.visit
         )
         visit = Visit.objects.get(id=room.visit_id)
         visit.participants.append(body['pcpId'])
         v = Visit(
-            patient = visit.patient,
-            status = 'STARTED',
-            type = 'ALL',
-            doctor = visit.participants
+            patient=visit.patient,
+            status='STARTED',
+            type='ALL',
+            doctor=visit.participants
         )
         v.save()
         try:
@@ -156,23 +160,23 @@ class AddDoctor(APIView):
         push_data = {
             'action': 1,
             'roomId': roomnew.id,
-            'eventType':'doctor_request'
+            'eventType': 'doctor_request'
         }
-        messes = Messages.objects.filter(visit_id= visit.id)
+        messes = Messages.objects.filter(visit_id=visit.id)
         for mess in messes:
             message = Messages.objects.create(
-            messageType='text',
-            messageBody= mess.messageBody,
-            creator=mess.creator,
-            room=roomnew,
-            visit= v
-        ) 
+                messageType='text',
+                messageBody=mess.messageBody,
+                creator=mess.creator,
+                room=roomnew,
+                visit=v
+            )
         message = Messages.objects.create(
             messageType='info',
             messageBody='Doctor is added to chat',
             creator=u,
             room=roomnew,
-            visit= v
+            visit=v
         )
 
         for par in visit.participants:

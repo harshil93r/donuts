@@ -155,3 +155,13 @@ class Inbox(APIView):
                 payload['lm'] = last_message.messageBody
             result['data'].append(payload)
         return Response(result)
+
+
+class Vid(APIView):
+
+    permission_classes = ()
+    authentication_classes = ()
+
+    def get(self, request):
+        r = open('/Users/harshilrastogi/un.html')
+        return Response(r.read())

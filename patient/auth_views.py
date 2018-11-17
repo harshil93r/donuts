@@ -67,24 +67,35 @@ class DoctorList(APIView):
             pcp = User.objects.get(doctor__pcpId=user.patient.pcpId)
 
             r = {}
-            r['pcp'] = []
-            r['cir'] = []
-            r['oth'] = []
+            r['pcp'] = {}
+            r['cir'] = {}
+            r['oth'] = {}
             payload = {}
-
+            r['pcp']['head'] = 'PCP'
+            r['cir']['head'] = 'You will be charged partial amount'
+            r['oth']['head'] = 'You will be charged complete amount'
+            r['pcp']['list'] = []
+            r['cir']['list'] = []
+            r['oth']['list'] = []
             payload['pcpId'] = pcp.doctor.pcpId
             payload['name'] = pcp.first_name + pcp.last_name
             payload['rating'] = pcp.doctor.rating
             payload['price'] = pcp.doctor.price
             payload['copay'] = '0%'
             payload['speciality'] = pcp.doctor.price
-            r['pcp'].append(payload)
+            r['pcp']['list'].append(payload)
         except:
             r = {}
             payload = {}
-            r['pcp'] = []
-            r['cir'] = []
-            r['oth'] = []
+            r['pcp'] = {}
+            r['cir'] = {}
+            r['oth'] = {}
+            r['pcp']['head'] = 'PCP'
+            r['cir']['head'] = 'You will be charged partial amount'
+            r['oth']['head'] = 'You will be charged complete amount'
+            r['pcp']['list'] = []
+            r['cir']['list'] = []
+            r['oth']['list'] = []
         for doc in doctors:
             if doc.zip5 == user.zip5:
                 payload['pcpId'] = doc.doctor.pcpId
@@ -93,7 +104,7 @@ class DoctorList(APIView):
                 payload['price'] = doc.doctor.price
                 payload['copay'] = '30%'
                 payload['speciality'] = doc.doctor.speciality
-                r['cir'].append(payload)
+                r['cir']['list'].append(payload)
             else:
                 payload['pcpId'] = doc.doctor.pcpId
                 payload['name'] = doc.first_name + doc.last_name
@@ -101,7 +112,7 @@ class DoctorList(APIView):
                 payload['price'] = doc.doctor.price
                 payload['copay'] = '100%'
                 payload['speciality'] = doc.doctor.speciality
-                r['oth'].append(payload)
+                r['oth']['list'].append(payload)
 
         return Response(r)
 

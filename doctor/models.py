@@ -8,6 +8,6 @@ class Doctor(models.Model):
     rating = models.IntegerField(null=True)
     price = models.IntegerField(null=True)
     speciality = models.CharField(max_length=25, null=True)
-    license = models.CharField(max_length=20),
-    lastseen = models.FloatField()
+    license = models.CharField(max_length=20)
+    lastseen = models.FloatField(null=True)
     insuaranceNo = models.CharField(max_length=20)

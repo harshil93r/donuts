@@ -3,7 +3,7 @@ from djforge_redis_multitokens.tokens_auth import MultiToken
 from django.contrib.auth import get_user_model
 from rest_framework import exceptions
 from django.conf import settings
-
+import time
 
 class CachedTokenAuthentication(TokenAuthentication):
     keyword = 'a'
@@ -11,7 +11,9 @@ class CachedTokenAuthentication(TokenAuthentication):
     def authenticate_credentials(self, key):
         try:
             user = MultiToken.get_user_from_token(key)
-
+            if user._type=='DOC':
+                user.lastseen = time.time()
+                user.save()
             if settings.DJFORGE_REDIS_MULTITOKENS.get('RESET_TOKEN_TTL_ON_USER_LOG_IN'):
                 MultiToken.reset_tokens_ttl(user.pk)
 

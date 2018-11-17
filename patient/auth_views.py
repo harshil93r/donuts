@@ -207,3 +207,4 @@ class DoctorRequest(APIView):
                 socket_notify(push_data, channel=doctor.pcpId)
 
 
+        return Response({})

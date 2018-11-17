@@ -76,9 +76,13 @@ WSGI_APPLICATION = 'hack.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'donuts',
+        'USER': 'outreach',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
 }
 
 
@@ -100,9 +104,40 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        # 'djforge_redis_multitokens.tokens_auth.CachedTokenAuthentication',
+        'inconnect_engagement.middlewares.authentication.CachedTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
+DJFORGE_REDIS_MULTITOKENS = {}
+
+CACHES = {
+    # other Redis db definitions above
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'localhost:6379'
+
+    },
+    # tokens db definition
+    'tokens': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'localhost:6379',
+        'OPTIONS': {
+            'DB': 2,
+        },
+        'TIMEOUT': 30 * 60,
+    },
+}
 
 LANGUAGE_CODE = 'en-us'
 

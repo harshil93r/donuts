@@ -19,14 +19,38 @@ class Message(APIView):
         room = Rooms.objects.get(id=roomId)
         data = request._json_body
         message = Messages.objects.create(
-            messageType='TXT',
+            messageType='text',
             messageBody=data['message'],
             creator=sender,
             room=room
         )
         mems = room.participants
         return Response('wow')
-            
+
+    def get(self, request, roomId):
+        user = request.user
+        room = Rooms.objects.get(id=roomId)
+        mems = room.participants
+        messages = Messages.objects.filter(room=room).order_by('sentAt')
+        result=[]
+        for message in messages:
+            bol = False
+            if user.id==message.creator.id: bol=True
+            result.append(
+                {
+                "type":message.messageType,
+                "time":message.sentAt.strftime('%Y-%m-%d %H:%M'),
+                "sender":message.creator.first_name,
+                "self":bol,
+                "data": {
+                    "msg":message.messageBody,
+                    "scr":message.url,
+                    "formId":'',
+                    "status":'',
+                }
+                })
+        return Response(result)
+
 
 class Attachment(APIView):
     def post(self, request, roomId):
@@ -40,9 +64,13 @@ class Attachment(APIView):
         f = NamedTemporaryFile(delete=False)
         f.write(content)
         filename = f.name
-        
+        msg_type = kind[0]
+        if kind[0] == 'application/pdf':
+            msg_type = 'pdf'
+        if kind[0].split('/')[0] == 'image' or kind[0].split('/')[0] == 'Image':
+            msg_type = 'image'
         message = Messages.objects.create(
-            messageType=kind[0],
+            messageType=msg_type,
             creator=sender,
             attachmentDisplayName=file_obj.name,
             localName=filename,
@@ -72,9 +100,8 @@ class Inbox(APIView):
             payload['roomId'] = room.id
             payload['mems'] = participants
             last_message = Messages.objects.filter(room=room).order_by('-sentAt').first()
-            print()
             payload['lmt'] = last_message.sentAt.strftime('%Y-%m-%d %H:%M')
-            if last_message.messageType!='TXT':
+            if last_message.messageType!='txt':
                 payload['lm'] = 'Attachment'
             else:
                 payload['lm'] = last_message.messageBody

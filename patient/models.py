@@ -76,3 +76,10 @@ class Messages(models.Model):
     visit = models.ForeignKey(Visit, on_delete=None)
     def __str__(self):
         return "%s : %s" % (self.messageType, self.messageBody)
+
+class Form(models.Model):
+    """
+    """
+    formType = models.CharField(max_length=20)#
+    status = models.CharField(max_length=20, default='SUBMITTED')#PENDING
+    createdBy = model.ForeignKey(User,on_delete=None)

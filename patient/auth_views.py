@@ -256,3 +256,20 @@ class EndChat(APIView):
             socket_notify(push_data, channel=id)
             socket_notify(data, channel=id)
         return Response({})
+
+class Form(APIView):
+    def get(self, request,form_id):
+        u = request.user
+        form = Form.objects.get(id=form_id)
+        if form.status == 'SUBMITTED':
+            return Response("Form already filled")
+        return Response(settings.form[form.formType])
+
+    def post(self, request):
+        u = request.user
+        body = request._json_body
+        form = Form.objects.get(id=form_id)
+        form.status = 'SUBMITTED'
+        form.save()
+        return Response({})
+

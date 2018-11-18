@@ -25,4 +25,5 @@ def notify(data, channel):
     base_uri = '{websocket}/pub?id='.format(
         websocket=settings.WEBSOCKET_ADDR)
     url = base_uri + channel
-    requests.post(url, json=data)
+
+    print(requests.post(url, json=data).text, channel)

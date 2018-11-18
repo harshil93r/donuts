@@ -47,7 +47,7 @@ class Me(APIView):
         u = request.user
         res = {'fn': u.first_name,
                'ln': u.last_name,
-               'status': u.status}
+               'status': u.status, 'userId': u.id}
         return Response(res)
 
     def patch(self, request):
@@ -57,9 +57,11 @@ class Me(APIView):
             price=body['price'],
             speciality=body['speciality'],
             pcpId=body['pcpId'],
-            license=body['license']
+            license=body['license'],
+            insuaranceNo=body['insuaranceNo']
         )
         d.save()
+        u.status = 3
         u._type = 'DOC'
         u.doctor = d
         u.save()
@@ -74,13 +76,14 @@ class Accept(APIView):
         visit = Visit.objects.get(id=body['visit_id'])
         if visit.status != 'PENDING':
             return Response({'error': 'already accepted.'}, 400)
-        if visit.type == 'ALL':
-            visit.doctor.append(u.id)
-            visit.status = 'STARTED'
-            visit.save()
+        # if visit.type == 'ALL':
+        visit.doctor.append(u.id)
+        visit.status = 'STARTED'
+        visit.save()
         paticipant = []
         paticipant.append(u.id)
         paticipant.append(visit.patient.id)
+        print(paticipant)
         try:
             room = Rooms.objects.get(participants=paticipant)
             room.status = 'ACTIVE'
@@ -140,25 +143,33 @@ class AddDoctor(APIView):
             room=room,
             visit=room.visit
         )
+        room.participants.append(body['userId'])
         visit = Visit.objects.get(id=room.visit_id)
-        visit.participants.append(body['pcpId'])
+        try:
+            User.objects.get(id=body['userId'])
+        except:
+            return Response({'error': 'invalid userId'}, 400)
+        visit.doctor.append(body['userId'])
+        visit.status = 'ENDED'
+        visit.save()
         v = Visit(
             patient=visit.patient,
             status='STARTED',
             type='ALL',
-            doctor=visit.participants
+            doctor=visit.doctor
         )
         v.save()
         try:
-            roomnew = Rooms.objects.get(participants=visit.participants)
+            roomnew = Rooms.objects.get(participants=room.participants)
+            roomnew.visit = v
+            roomnew.save()
         except Rooms.DoesNotExist:
             roomnew = Rooms(
-                participants=visit.participants,
-                status='ACTIVE'
+                participants=room.participants,
+                status='ACTIVE',
+                visit=v
             )
             roomnew.save()
-        roomnew.visit = v
-        roomnew.save()
         push_data = {
             'action': 1,
             'roomId': roomnew.id,
@@ -167,7 +178,7 @@ class AddDoctor(APIView):
         messes = Messages.objects.filter(visit_id=visit.id)
         for mess in messes:
             message = Messages.objects.create(
-                messageType='text',
+                messageType=mess.messageType,
                 messageBody=mess.messageBody,
                 creator=mess.creator,
                 room=roomnew,
@@ -181,8 +192,9 @@ class AddDoctor(APIView):
             visit=v
         )
 
-        for par in visit.participants:
-            socket_notify(push_data, channel=par.id)
+        for par in roomnew.participants:
+            print(par)
+            socket_notify(push_data, channel=par)
         return Response({'roomId': roomnew.id})
 
 

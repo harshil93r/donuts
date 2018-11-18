@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'hack.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'donuts',
+        'NAME': 'donutsnew',
         'USER': 'outreach',
         'PASSWORD': '',
         'HOST': 'localhost',

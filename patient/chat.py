@@ -144,6 +144,7 @@ class Inbox(APIView):
 
     def get(self, request):
         user = request.user
+        print(request.user.id)
         all_rooms = Rooms.objects.all()
         rooms = []
         for room in all_rooms:

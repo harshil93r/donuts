@@ -2,6 +2,7 @@ from django.conf import settings
 from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import *
+from doctor.models import Doctor
 from rest_framework.response import Response
 from django.db.utils import IntegrityError
 from hack.utils import send_sms
@@ -10,6 +11,7 @@ from djforge_redis_multitokens.tokens_auth import MultiToken
 from hack.utils import notify as socket_notify
 from django.db.models import Q
 import time
+from . import form as form_data
 # Create your views here.
 
 
@@ -145,7 +147,7 @@ class Login(APIView):
         return Response(
             {'token': token.key,
              'fn': _user.first_name,
-             'ln': _user.last_name}
+             'ln': _user.last_name, 'userId': _user.id}
         )
 
 
@@ -155,7 +157,8 @@ class Me(APIView):
         u = request.user
         res = {'fn': u.first_name,
                'ln': u.last_name,
-               'status': u.status}
+               'status': u.status,
+               'userId': u.id}
         return Response(res)
 
     def patch(self, request):
@@ -170,6 +173,7 @@ class Me(APIView):
             ssn=body['ssn'],
         )
         p.save()
+        u.status = 3
         u._type = 'PAT'
         u.patient = p
         u.save()
@@ -201,11 +205,13 @@ class DoctorRequest(APIView):
         push_data = {
             'patientDesc': body['problemDesc'],
             'patientName': u.first_name + ' ' + u.last_name,
-            'visit_id': v.id
+            'visit_id': v.id,
+            'eventType': 'patRequest'
         }
-
         if pcpId:
-            socket_notify(push_data, channel=body['pcpId'])
+            u = Doctor.objects.get(pcpId=body['pcpId'])
+            u = User.objects.get(doctor_id=u.id)
+            socket_notify(push_data, channel=u.id)
         else:
             doc = User.objects.filter(_type='DOC')
             for doctor in doc:
@@ -265,7 +271,7 @@ class FormView(APIView):
         form = Form.objects.get(id=form_id)
         if form.status == 'SUBMITTED':
             return Response("Form already filled")
-        return Response(settings.form[form.formType])
+        return Response(form_data[form.formType])
 
     def post(self, request):
         u = request.user

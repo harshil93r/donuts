@@ -1,5 +1,5 @@
 from django.urls import path
-from .auth_views import SignUp, OTPVerify, Login, Me, DoctorList, DoctorRequest, EndChat
+from .auth_views import SignUp, OTPVerify, Login, Me, DoctorList, DoctorRequest, EndChat, Form
 from .chat import Message, Attachment, Inbox, Vid
 
 urlpatterns = [
@@ -14,5 +14,6 @@ urlpatterns = [
     path('inbox', Inbox.as_view()),
     path('chat/messages', Message.as_view()),
     path('endchat', EndChat.as_view()),
-    path('vid', Vid.as_view())
+    path('vid', Vid.as_view()),
+    path('form/<int:form_id>',Form.as_view())
 ]

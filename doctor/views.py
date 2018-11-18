@@ -8,6 +8,7 @@ from hack.utils import send_sms
 from random import randrange
 import time
 from hack.utils import notify as socket_notify
+from django.conf import settings
 # Create your views here.
 
 
@@ -182,3 +183,43 @@ class AddDoctor(APIView):
         for par in visit.participants:
             socket_notify(push_data, channel=par.id)
         return Response({'roomId': roomnew.id})
+
+class Form(APIView):
+    def get(self, request):
+        return Response(settings.formType)
+    def post(self, request):
+        body = request._json_body
+        u = request.user
+        room = Rooms.objects.get(id=body['roomId'])
+        message = Messages.objects.create(
+            messageType='form',
+            messageBody='Please fill this form',
+            creator=u,
+            room=room,
+            visit=room.visit
+        )
+        form = Form.objects.create(
+            formType = body['formType'],
+            status = 'PENDING',
+            createdBy = u
+        )
+        data = {}
+        data['eventType'] = 'new_chat_message'
+        data['msg'] = {
+            "id": message.id,
+            "type": message.messageType,
+            "time": message.sentAt.strftime('%I:%M %p'),
+            "sender": message.creator.first_name + ' ' + message.creator.last_name,
+            "self": False,
+            "data": {
+                "msg": message.messageBody,
+                "scr": '',
+                "formId":form.id ,
+                "status": form.status,
+            }
+        }
+        for par in room.participants:
+            if par != str(u.id):
+                socket_notify(data, channel=par)
+        data['msg']['self'] = True
+        return Response(data)

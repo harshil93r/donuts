@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SignUp, Me, Accept, Reject, AddDoctor
+from .views import SignUp, Me, Accept, Reject, AddDoctor, Form
 from patient.auth_views import Login, OTPVerify
 from patient.chat import Inbox
 urlpatterns = [
@@ -10,5 +10,6 @@ urlpatterns = [
     path('accept', Accept.as_view()),
     path('reject', Reject.as_view()),
     path('inbox', Inbox.as_view()),
-    path('add',AddDoctor.as_view())
+    path('add',AddDoctor.as_view()),
+    path('form',Form.as_view())
 ]

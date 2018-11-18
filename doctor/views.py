@@ -95,7 +95,8 @@ class Accept(APIView):
         room.save()
         message = Messages.objects.create(
             messageType='info',
-            messageBody='visit has started at {}'.format(time.strftime('%dth %b, %I:%M %p')),
+            messageBody='visit has started at {}'.format(
+                time.strftime('%dth %b, %I:%M %p')),
             creator=u,
             room=room,
             visit=visit
@@ -184,24 +185,28 @@ class AddDoctor(APIView):
             socket_notify(push_data, channel=par.id)
         return Response({'roomId': roomnew.id})
 
-class Form(APIView):
+
+class FormView(APIView):
+
     def get(self, request):
-        return Response(settings.formType)
+        return Response(['formA', 'formB', 'formC'])
+
     def post(self, request):
         body = request._json_body
         u = request.user
         room = Rooms.objects.get(id=body['roomId'])
+        form = Form.objects.create(
+            formType=body['formType'],
+            status='PENDING',
+            createdBy=u
+        )
         message = Messages.objects.create(
             messageType='form',
             messageBody='Please fill this form',
             creator=u,
             room=room,
-            visit=room.visit
-        )
-        form = Form.objects.create(
-            formType = body['formType'],
-            status = 'PENDING',
-            createdBy = u
+            visit=room.visit,
+            formId=form.id
         )
         data = {}
         data['eventType'] = 'new_chat_message'
@@ -214,7 +219,7 @@ class Form(APIView):
             "data": {
                 "msg": message.messageBody,
                 "scr": '',
-                "formId":form.id ,
+                "formId": form.id,
                 "status": form.status,
             }
         }

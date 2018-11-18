@@ -74,12 +74,15 @@ class Messages(models.Model):
     attachmentDisplayName = models.CharField(max_length=200, null=True)
     localName = models.CharField(max_length=200, null=True)
     visit = models.ForeignKey(Visit, on_delete=None)
+    formId = models.CharField(max_length=30)
+
     def __str__(self):
         return "%s : %s" % (self.messageType, self.messageBody)
+
 
 class Form(models.Model):
     """
     """
-    formType = models.CharField(max_length=20)#
-    status = models.CharField(max_length=20, default='SUBMITTED')#PENDING
-    createdBy = model.ForeignKey(User,on_delete=None)
+    formType = models.CharField(max_length=20)
+    status = models.CharField(max_length=20, default='SUBMITTED')  # PENDING
+    createdBy = models.ForeignKey(User, on_delete=None)

@@ -1,4 +1,4 @@
-
+from django.conf import settings
 from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import *
@@ -226,7 +226,7 @@ class EndChat(APIView):
         room.status = 'INACTIVE'
         room.save()
         message = Messages.objects.create(
-            messageType = 'info',
+            messageType='info',
             messageBody='visit has ended at {} with payout amount $300'.format(
                 time.strftime('%dth %b, %I:%M %p')),
             creator=u,
@@ -235,7 +235,7 @@ class EndChat(APIView):
         )
         push_data = {
             'action': 3,
-            'actionType':'endChat'
+            'actionType': 'endChat'
         }
         data = {}
         data['eventType'] = 'new_chat_message'
@@ -257,9 +257,11 @@ class EndChat(APIView):
             socket_notify(data, channel=id)
         return Response({})
 
-class Form(APIView):
-    def get(self, request,form_id):
-        u = request.user
+
+class FormView(APIView):
+
+    def get(self, request):
+        form_id = int(request.GET['form_id'])
         form = Form.objects.get(id=form_id)
         if form.status == 'SUBMITTED':
             return Response("Form already filled")
@@ -272,4 +274,3 @@ class Form(APIView):
         form.status = 'SUBMITTED'
         form.save()
         return Response({})
-

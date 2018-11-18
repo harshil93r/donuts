@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import User, Patient, Messages, Rooms
+from .models import User, Patient, Messages, Rooms, Form
 from rest_framework.response import Response
 from django.db.utils import IntegrityError
 from hack.utils import send_sms
@@ -49,7 +49,7 @@ class Message(APIView):
         for mem in mems:
             if str(sender.id) != mem:
                 notify(data, channel=mem)
-        data['msg']['self']=True
+        data['msg']['self'] = True
         return Response(data['msg'])
 
     def get(self, request):
@@ -63,20 +63,37 @@ class Message(APIView):
             bol = False
             if user.id == message.creator.id:
                 bol = True
-            result.append(
-                {
-                    "id": message.id,
-                    "type": message.messageType,
-                    "time": message.sentAt.strftime('%I:%M %p'),
-                    "sender": message.creator.first_name + ' ' + message.creator.last_name,
-                    "self": bol,
-                    "data": {
-                        "msg": message.messageBody,
-                        "scr": message.url,
-                        "formId": '',
-                        "status": '',
-                    }
-                })
+            if message.messageType == 'form':
+                form = Form.objects.get(id=int(message.formId))
+                result.append(
+                    {
+                        "id": message.id,
+                        "type": message.messageType,
+                        "time": message.sentAt.strftime('%I:%M %p'),
+                        "sender": message.creator.first_name + ' ' + message.creator.last_name,
+                        "self": bol,
+                        "data": {
+                            "msg": message.messageBody,
+                            "scr": message.url,
+                            "formId": message.formId,
+                            "status": form.status,
+                        }
+                    })
+            else:
+                result.append(
+                    {
+                        "id": message.id,
+                        "type": message.messageType,
+                        "time": message.sentAt.strftime('%I:%M %p'),
+                        "sender": message.creator.first_name + ' ' + message.creator.last_name,
+                        "self": bol,
+                        "data": {
+                            "msg": message.messageBody,
+                            "scr": message.url,
+                            "formId": '',
+                            "status": '',
+                        }
+                    })
         for mem in room.participants:
             if str(mem) != str(request.user.id):
                 u = User.objects.get(id=mem)
@@ -147,6 +164,8 @@ class Inbox(APIView):
                     payload['name'] += u.first_name + ' ' + u.last_name
             last_message = Messages.objects.filter(
                 room=room).order_by('-sentAt').first()
+
+            payload['ct'] = str(last_message.sentAt)
             payload['lmt'] = last_message.sentAt.strftime(
                 '%I:%M %p')  # %Y-%m-%d %H:%M
             if last_message.messageType != 'text':

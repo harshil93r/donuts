@@ -19,7 +19,7 @@ jdcal==1.4
 jsonschema==2.6.0
 lml==0.0.1
 openpyxl==2.5.4
-pillow==5.2.0
+pillow==6.2.0
 psycopg2-binary==2.7.5
 pyexcel==0.5.8
 pyexcel-io==0.5.7

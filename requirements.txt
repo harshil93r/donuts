@@ -2,7 +2,7 @@ boto3==1.7.78
 celery==4.2.1
 certifi==2018.4.16
 chardet==3.0.4
-Django==2.0.5
+Django==2.2.10
 django-celery-beat==1.1.1
 django-rest-framework==0.1.0
 django-rest-swagger==2.2.0
